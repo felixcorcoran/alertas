@@ -32,7 +32,10 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: web/package-lock.json
-      - run: npm ci
+      # npm install y no npm ci: el lock se genera en Windows y npm ci en Linux
+      # pide unas dependencias opcionales de WebAssembly que allí no se anotan.
+      # Respeta las versiones del lock igualmente.
+      - run: npm install --no-audit --no-fund
       - run: npx ng test --watch=false
       - run: npm run build
 
