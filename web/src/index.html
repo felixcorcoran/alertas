@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Avisos de ayudas para tu negocio · Radar de subvenciones</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Recibe por email las ayudas y subvenciones nuevas que encajan con tu negocio. Gratis, sin cuenta y con baja en un clic."
+    />
+    <meta name="theme-color" content="#FAF9F6" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <!-- El tema de felixcorcoran.es: llega en la dirección (?tema=oscuro) o se eligió antes -->
+    <script>
+      (() => {
+        try {
+          const url = new URL(location.href);
+          const pedido = url.searchParams.get('tema');
+          if (pedido === 'oscuro') localStorage.setItem('tema', 'oscuro');
+          if (pedido === 'claro') localStorage.removeItem('tema');
+          if (pedido) {
+            url.searchParams.delete('tema');
+            history.replaceState(null, '', url);
+          }
+          if (localStorage.getItem('tema') === 'oscuro') document.documentElement.dataset.theme = 'dark';
+        } catch {
+          if (location.search.includes('tema=oscuro')) document.documentElement.dataset.theme = 'dark';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
+</html>

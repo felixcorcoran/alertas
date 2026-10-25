@@ -1,0 +1,26 @@
+name: Avisos diarios
+
+# Cada mañana, cuando el radar ya ha recogido y leído las convocatorias del
+# día (su Action empieza a las 05:30 UTC y tarda como mucho unos 40 minutos),
+# se lanza la pasada de avisos de la API.
+on:
+  schedule:
+    - cron: '15 7 * * *'
+  workflow_dispatch:
+
+jobs:
+  avisos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pasada de avisos
+        env:
+          API: ${{ vars.ALERTAS_API_URL }}
+          CLAVE: ${{ secrets.ALERTAS_CLAVE_AVISOS }}
+        run: |
+          if [ -z "$API" ] || [ -z "$CLAVE" ]; then
+            echo "Falta ALERTAS_API_URL o ALERTAS_CLAVE_AVISOS: sin desplegar aún, no hay nada que hacer"
+            exit 0
+          fi
+          # El plan gratuito de Render duerme la API: el primer intento la despierta
+          curl -fsS --retry 6 --retry-delay 20 --retry-all-errors --max-time 180 \
+            -X POST "$API/api/avisos" -H "Authorization: Bearer $CLAVE"

@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/api/:ruta*", "destination": "https://RELLENAR-API.onrender.com/api/:ruta*" },
+    { "source": "/actuator/health", "destination": "https://RELLENAR-API.onrender.com/actuator/health" },
+    { "source": "/((?!api/|actuator/).*)", "destination": "/index.html" }
+  ]
+}
