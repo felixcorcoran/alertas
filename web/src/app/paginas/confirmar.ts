@@ -11,21 +11,21 @@ import { aParametros, resumen } from '../perfil';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (hecha(); as s) {
-      <section class="hecho">
+      <section>
         <p class="eyebrow">Confirmado</p>
         <h1>Listo: te avisaremos</h1>
-        <p>
+        <p class="lead">
           Cuando salga una ayuda nueva que encaje con tu negocio, te llegará a
           <strong>{{ s.email }}</strong>. Como mucho, un correo al día.
         </p>
         <p class="nota">{{ resumen(s) }}</p>
         <p class="acciones">
-          <a class="boton" [href]="radar(s)">Ver las ayudas abiertas ahora</a>
+          <a class="boton" [href]="radar(s)">Ver las ayudas abiertas ahora <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1.5 6h9M7 2.5 10.5 6 7 9.5"></path></svg></a>
           <a class="enlace" routerLink="/gestionar" [queryParams]="{ t: t() }">Cambiar mi negocio</a>
         </p>
       </section>
     } @else if (error(); as e) {
-      <section class="hecho">
+      <section>
         <h1>No se ha podido confirmar</h1>
         <p class="error" role="alert">{{ e }}</p>
         <p><a routerLink="/">Apuntarme de nuevo</a></p>

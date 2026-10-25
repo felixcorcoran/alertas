@@ -90,6 +90,19 @@ export function aParametros(p: Perfil): string {
   return q.toString();
 }
 
+/** Las respuestas, una por una, como las enseña el radar en sus resultados */
+export function respuestas(p: Perfil): string[] {
+  const provincia = PROVINCIAS.find((x) => x.codigo === p.provincia)?.nombre ?? p.provincia;
+  return [
+    provincia,
+    p.municipio,
+    FORMAS[p.forma].titulo,
+    p.forma === 'emprender' ? '' : (PLANTILLA.find(([v]) => v === p.empleados)?.[1] ?? ''),
+    p.forma === 'emprender' ? '' : (ANTIGUEDAD.find(([v]) => v === p.antiguedad)?.[1] ?? ''),
+    SECTORES.find((s) => s.letra === p.sector)?.nombre ?? '',
+  ].filter(Boolean);
+}
+
 /** «Autónomo o autónoma en Marbella (Málaga) · Hostelería» */
 export function resumen(p: Perfil): string {
   const provincia = PROVINCIAS.find((x) => x.codigo === p.provincia)?.nombre ?? p.provincia;

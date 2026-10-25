@@ -1,8 +1,10 @@
-/* El mismo sistema que el Radar de subvenciones y felixcorcoran.es: paleta,
-   papel con grano y rótulos (src/styles/global.css del radar). */
+/* El mismo sistema que el Radar de subvenciones y felixcorcoran.es
+   (src/styles/global.css, Navbar.astro y Footer.astro del radar): paleta,
+   papel con grano, marco, píldora y firma. Si cambia allí, cambia aquí. */
 
 @import '@fontsource/sora/300.css';
 @import '@fontsource/sora/400.css';
+@import '@fontsource/sora/500.css';
 @import '@fontsource/sora/600.css';
 
 :root {
@@ -11,19 +13,34 @@
   --text-muted: #6b6b6b;
   --accent: #f28c7a;
   --accent-soft: #ffd6cc;
-  --accent-text: #c2513c;
-  --ok: #2f7d4f;
+
+  /* Los mismos colores como canales, para usarlos con transparencia */
   --ink: 23 23 23;
   --paper: 250 249 246;
   --surface: #fff;
   --surface-rgb: 255 255 255;
-  --rule: rgb(var(--ink) / 0.1);
+
+  /* El coral de texto: el de la marca no llega a 4.5:1 sobre crema */
+  --accent-text: #c2513c;
+  --ok: #2f7d4f;
+
+  color-scheme: light;
+
   --gutter: clamp(1rem, 3vw, 2.5rem);
+  --frame: min(100% - 2 * var(--gutter), 84rem);
+  --frame-pad: clamp(1.25rem, 2.2vw, 2rem);
+  --nav-top: clamp(0.75rem, 1.6vw, 1.25rem);
+  --nav-height: 3.25rem;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --rule: rgb(var(--ink) / 0.1);
+
   --grain: 0.12;
   --grain-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='.33 .33 .33 0 0 .33 .33 .33 0 0 .33 .33 .33 0 0 .33 .33 .33 0 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='discrete' tableValues='0 1'/%3E%3CfeFuncG type='discrete' tableValues='0 1'/%3E%3CfeFuncB type='discrete' tableValues='0 1'/%3E%3CfeFuncA type='table' tableValues='1 0 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  color-scheme: light;
 }
 
+/* Oscuro: solo si el visitante lo elige (aquí o en felixcorcoran.es). Lo
+   aplica un script en <head> antes de pintar. */
 :root[data-theme='dark'] {
   --bg: #131211;
   --text: #eeebe5;
@@ -31,11 +48,19 @@
   --accent-soft: #5b3129;
   --accent-text: #f28c7a;
   --ok: #7fc79a;
+
   --ink: 238 235 229;
   --paper: 19 18 17;
   --surface: #262321;
   --surface-rgb: 38 35 33;
+
   color-scheme: dark;
+}
+
+@media (max-width: 40rem) {
+  :root {
+    --nav-height: 3rem;
+  }
 }
 
 html {
@@ -43,6 +68,8 @@ html {
   color: var(--text);
   font-family: 'Sora', sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -53,9 +80,15 @@ body {
   position: relative;
   isolation: isolate;
   overflow-x: clip;
-  line-height: 1.6;
 }
 
+app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+/* El papel: grano continuo de arriba abajo, como en la landing */
 body::before {
   content: '';
   position: absolute;
@@ -64,12 +97,6 @@ body::before {
   pointer-events: none;
   opacity: var(--grain);
   background-image: var(--grain-image);
-}
-
-app-root {
-  display: flex;
-  flex-direction: column;
-  min-height: 100svh;
 }
 
 ::selection {
@@ -82,24 +109,15 @@ app-root {
   outline-offset: 3px;
 }
 
-a {
-  color: var(--accent-text);
-  text-underline-offset: 0.2em;
-}
-
-h1 {
-  margin: 0.4rem 0 1rem;
-  font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.75rem);
-  font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -0.03em;
-  text-wrap: balance;
+:root[data-theme='dark'] :focus-visible {
+  outline-color: var(--accent);
 }
 
 .eyebrow {
   margin: 0;
   font-size: 0.8125rem;
-  font-weight: 400;
+  font-weight: 500;
+  line-height: 1.3;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -109,28 +127,60 @@ h1 {
   color: color-mix(in srgb, var(--accent) 62%, var(--text-muted));
 }
 
-/* Cabecera, contenido y pie */
-.cabecera,
-main,
-.pie {
-  box-sizing: border-box;
-  width: min(100% - 2 * var(--gutter), 52rem);
-  margin-inline: auto;
+/* Cambio de tema (botón de la luna): sin el fundido por defecto; el tema
+   nuevo entra encima del anterior, recortado en un círculo que crece desde
+   la luna */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
 }
 
-.cabecera {
+/* ───────────── Cabecera: la píldora de felixcorcoran.es ───────────── */
+
+.nav {
+  position: fixed;
+  inset: var(--nav-top) 0 auto;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.pill {
+  pointer-events: auto;
+  box-sizing: border-box;
+  width: var(--frame);
+  margin-inline: auto;
+  height: var(--nav-height);
+  padding-inline: var(--frame-pad);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding-block: 1.5rem;
+  gap: 1.5rem;
+  border-radius: 999px;
+  background: rgb(var(--paper) / 0.65);
+  border: 1px solid rgb(var(--ink) / 0.06);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--surface-rgb) / 0.7),
+    0 10px 30px -16px rgb(var(--ink) / 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+:root[data-theme='dark'] .pill {
+  background: rgb(var(--surface-rgb) / 0.72);
+  border-color: rgb(var(--ink) / 0.12);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 10px 30px -16px rgb(0 0 0 / 0.6);
 }
 
 .logo {
   font-size: 1.0625rem;
   letter-spacing: -0.025em;
+  line-height: 1;
   color: var(--text);
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .logo-first {
@@ -142,68 +192,355 @@ main,
   font-weight: 600;
 }
 
-.volver {
+.links {
+  display: flex;
+  align-items: center;
+  gap: clamp(1.5rem, 2.6vw, 2.5rem);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.theme {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  margin: 0 -0.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.25s var(--ease-out);
+}
+
+.theme:hover {
+  color: var(--text);
+}
+
+.theme svg {
+  grid-area: 1 / 1;
+  width: 1.0625rem;
+  height: 1.0625rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.theme .sun,
+:root[data-theme='dark'] .theme .moon {
+  display: none;
+}
+
+:root[data-theme='dark'] .theme .sun {
+  display: block;
+}
+
+.links a {
   font-size: 0.875rem;
+  letter-spacing: -0.005em;
   color: var(--text-muted);
   text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.25s var(--ease-out);
 }
 
-.volver:hover {
+.links a:hover {
   color: var(--text);
 }
 
-main {
-  flex: 1;
-  padding-block: clamp(1.5rem, 5vw, 3.5rem);
-}
-
-.pie {
-  padding-block: 2rem 2.5rem;
-  border-top: 1px solid var(--rule);
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-}
-
-.pie p {
-  margin: 0 0 1rem;
-  max-width: 40rem;
-}
-
-.pie nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.pie a {
-  color: var(--text-muted);
-}
-
-.pie a:hover {
+.links a.highlight {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  height: calc(var(--nav-height) - 1rem);
+  margin-right: calc(0.5rem - var(--frame-pad));
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgb(var(--ink) / 0.18);
   color: var(--text);
+  transition:
+    box-shadow 0.25s var(--ease-out),
+    background-color 0.25s var(--ease-out);
 }
 
-.pie .cta {
-  color: var(--accent-text);
+.links a.highlight::before {
+  content: '';
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.links a.highlight:hover {
+  background-color: rgb(var(--surface-rgb) / 0.7);
+  box-shadow: inset 0 0 0 1px rgb(var(--ink) / 0.3);
+}
+
+@media (max-width: 40rem) {
+  .logo {
+    font-size: 1rem;
+  }
+
+  .links {
+    gap: 0.75rem;
+  }
+
+  .theme {
+    width: 1.75rem;
+    margin: 0 -0.375rem 0 -0.625rem;
+  }
+}
+
+@media (max-width: 22.5rem) {
+  .pill,
+  .links {
+    gap: 0.75rem;
+  }
+
+  .pill {
+    padding-inline: 0.875rem;
+  }
+
+  .logo {
+    font-size: 0.9375rem;
+  }
+
+  .links {
+    gap: 0.625rem;
+  }
+
+  .theme {
+    width: 1.75rem;
+    margin: 0 -0.625rem 0 -0.375rem;
+  }
+
+  .links a.highlight {
+    height: auto;
+    margin-right: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 21.25rem) {
+  .theme-item {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pill {
+    animation: nav-in 1s var(--ease-out) backwards;
+  }
+}
+
+@keyframes nav-in {
+  from {
+    opacity: 0;
+    translate: 0 -0.5rem;
+  }
+}
+
+/* ───────────── Pie: la firma de eje a eje y la letra pequeña ───────────── */
+
+.footer .inner {
+  box-sizing: border-box;
+  width: calc(100% - 2 * var(--gutter));
+  margin-inline: auto;
+  padding: clamp(2.5rem, 8svh, 5rem) var(--frame-pad) clamp(0.75rem, 3svh, 2.25rem);
+  container-type: inline-size;
+}
+
+/* «felixcorcoran» mide 6.16em: así ocupa justo el ancho de la columna */
+.brand {
+  --brand-em: 6.16;
+
+  margin: 0 0 clamp(0.5rem, 2.5svh, 2rem);
+  font-size: min(100cqw / var(--brand-em), 21svh);
+  line-height: 0.8;
+  letter-spacing: -0.045em;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.brand-first {
+  font-weight: 300;
+  color: rgb(var(--ink) / 0.82);
+}
+
+.brand-last {
   font-weight: 600;
 }
 
-/* Páginas */
-.intro {
-  margin-bottom: clamp(1.75rem, 4vw, 2.5rem);
+.fine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem clamp(1.5rem, 3vw, 2.5rem);
 }
 
-.entradilla {
+/* La CTA, subrayada en coral; el correo y las herramientas, a su lado; lo
+   legal, a la derecha */
+.foot-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding-block: 0.4rem;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: max(1px, 0.07em);
+  text-underline-offset: 0.3em;
+}
+
+.foot-cta svg {
+  width: 0.75em;
+  height: 0.75em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: translate 0.3s var(--ease-out);
+}
+
+:root[data-theme='dark'] .foot-cta svg {
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .foot-cta:hover svg {
+    translate: 0.15em 0;
+  }
+}
+
+.mail {
+  font-size: 0.875rem;
+  padding-block: 0.4rem;
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: rgb(var(--ink) / 0.25);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  transition: text-decoration-color 0.3s var(--ease-out);
+}
+
+.mail:hover {
+  text-decoration-color: currentColor;
+}
+
+.legal {
+  display: flex;
+  gap: 1.25rem;
+  margin-left: auto;
+}
+
+.legal a {
+  padding-block: 0.4rem;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.3s var(--ease-out);
+}
+
+.legal a:hover {
+  color: var(--text);
+}
+
+@media (max-width: 40rem) {
+  .footer .inner {
+    padding-inline: 0;
+  }
+
+  .fine {
+    margin-inline: var(--frame-pad);
+    gap: 0 1.25rem;
+  }
+
+  .foot-cta,
+  .mail,
+  .legal a {
+    padding-block: 0.25rem;
+  }
+
+  .legal {
+    margin-left: 0;
+    flex-wrap: wrap;
+    column-gap: 1.25rem;
+  }
+}
+
+/* ───────────── Páginas (como la portada del radar) ───────────── */
+
+main {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: var(--frame);
+  margin-inline: auto;
+  padding: calc(var(--nav-top) + var(--nav-height) + clamp(1.5rem, 6svh, 4rem)) 0 0;
+}
+
+main > * {
+  max-width: 46rem;
+}
+
+h1 {
+  margin: 0.75rem 0 1.25rem;
+  font-size: clamp(2.1rem, 5.4vw, 3.75rem);
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+h2 {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+p,
+li {
+  line-height: 1.6;
+}
+
+a {
+  color: var(--text);
+  text-decoration-color: rgb(var(--ink) / 0.3);
+  text-underline-offset: 0.3em;
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+.lead {
   margin: 0;
   max-width: 40rem;
-  font-size: 1.0625rem;
-  color: rgb(var(--ink) / 0.78);
+  font-size: clamp(1rem, 1.6vw, 1.1875rem);
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--text-muted);
 }
 
-.hecho {
-  max-width: 38rem;
-  animation: entrar 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+.lead strong {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.lead a {
+  color: var(--text);
+  text-decoration-color: var(--accent);
 }
 
 .nota {
@@ -218,27 +555,39 @@ main {
 .error {
   margin: 0;
   color: var(--accent-text);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .ok {
   margin: 0;
   color: var(--ok);
-  font-weight: 600;
+  font-weight: 500;
+}
+
+/* Entrada suave de cada página */
+@media (prefers-reduced-motion: no-preference) {
+  main > * {
+    animation: entrar 0.7s var(--ease-out) backwards;
+  }
+
+  main > * + * {
+    animation-delay: 0.08s;
+  }
 }
 
 @keyframes entrar {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    translate: 0 0.75rem;
   }
 }
 
-/* Formulario */
-form {
+/* El formulario: la caja del asistente del radar */
+.caja {
+  margin-top: clamp(1.75rem, 4vw, 2.5rem);
   display: grid;
   gap: 1.5rem;
-  padding: clamp(1.25rem, 3.5vw, 2.25rem);
+  padding: clamp(1.25rem, 3.5vw, 2.75rem);
   border-radius: 1.75rem;
   background: rgb(var(--surface-rgb) / 0.7);
   border: 1px solid var(--rule);
@@ -247,13 +596,13 @@ form {
 
 .campo {
   display: grid;
-  gap: 0.4rem;
+  gap: 0.5rem;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .campo small {
-  font-weight: 400;
+  font-weight: 300;
   color: var(--text-muted);
 }
 
@@ -261,13 +610,14 @@ input:not([type='checkbox'], [type='radio']),
 select {
   box-sizing: border-box;
   width: 100%;
-  min-height: 2.875rem;
-  padding: 0.6rem 0.9rem;
-  border: 1px solid rgb(var(--ink) / 0.18);
-  border-radius: 0.875rem;
-  background: var(--surface);
+  height: 3.25rem;
+  padding: 0 1.125rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(var(--ink) / 0.16);
+  background: var(--bg);
   color: var(--text);
   font: inherit;
+  font-size: 1rem;
   font-weight: 400;
 }
 
@@ -286,7 +636,8 @@ input[aria-invalid='true'] {
   gap: 0.75rem;
   align-items: flex-start;
   font-size: 0.875rem;
-  color: rgb(var(--ink) / 0.78);
+  font-weight: 300;
+  color: var(--text-muted);
 }
 
 .acepto input {
@@ -297,18 +648,35 @@ input[aria-invalid='true'] {
   flex: none;
 }
 
-.desde-radar {
-  display: grid;
-  gap: 0.35rem;
-  margin: 0;
-  padding: 1rem 1.15rem;
-  border-radius: 1rem;
-  background: var(--surface);
-  border: 1px solid var(--rule);
+/* Lo que llega del radar: las respuestas, como en sus resultados */
+.tu-negocio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--rule);
 }
 
-.desde-radar .enlace {
-  justify-self: start;
+.tu-negocio .eyebrow {
+  flex-basis: 100%;
+}
+
+.tu-negocio ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tu-negocio li {
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--ink) / 0.14);
+  font-size: 0.8125rem;
+  line-height: 1.4;
 }
 
 .acciones {
@@ -316,52 +684,89 @@ input[aria-invalid='true'] {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem 1.5rem;
+  margin: clamp(1.5rem, 4vw, 2.25rem) 0 0;
 }
 
+.caja .acciones {
+  margin: 0;
+}
+
+/* El botón coral del radar */
 .boton {
   justify-self: start;
   display: inline-flex;
   align-items: center;
-  min-height: 3rem;
-  padding: 0 1.5rem;
+  gap: 0.6rem;
+  height: 3.5rem;
+  padding: 0 2rem;
   border: 0;
   border-radius: 999px;
-  background: var(--text);
-  color: var(--bg);
+  background: var(--accent);
+  color: #1b1110;
   font: inherit;
-  font-weight: 600;
+  font-size: 1.0625rem;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
+  box-shadow: 0 14px 30px -16px rgb(194 81 60 / 0.6);
   transition:
-    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.2s;
+    transform 0.25s var(--ease-out),
+    box-shadow 0.25s var(--ease-out),
+    opacity 0.25s var(--ease-out);
 }
 
 .boton:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 34px -16px rgb(194 81 60 / 0.7);
 }
 
 .boton:disabled {
   opacity: 0.6;
   cursor: progress;
+  transform: none;
+}
+
+.boton svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: translate 0.25s var(--ease-out);
+}
+
+.boton:hover svg {
+  translate: 0.2rem 0;
 }
 
 .boton--suave {
   background: transparent;
   color: var(--text);
-  box-shadow: inset 0 0 0 1px rgb(var(--ink) / 0.25);
+  box-shadow: inset 0 0 0 1px rgb(var(--ink) / 0.22);
+}
+
+.boton--suave:hover {
+  box-shadow: inset 0 0 0 1px rgb(var(--ink) / 0.4);
 }
 
 .enlace {
-  padding: 0;
+  padding: 0.5rem 0;
   border: 0;
   background: none;
-  color: var(--accent-text);
+  color: var(--text-muted);
   font: inherit;
   font-size: 0.9375rem;
+  text-align: left;
   text-decoration: underline;
-  text-underline-offset: 0.2em;
+  text-decoration-color: rgb(var(--ink) / 0.3);
+  text-underline-offset: 0.3em;
   cursor: pointer;
+}
+
+.enlace:hover {
+  color: var(--text);
 }
 
 @media (prefers-reduced-motion: reduce) {

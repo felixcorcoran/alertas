@@ -9,26 +9,37 @@
       name="description"
       content="Recibe por email las ayudas y subvenciones nuevas que encajan con tu negocio. Gratis, sin cuenta y con baja en un clic."
     />
-    <meta name="theme-color" content="#FAF9F6" />
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <!-- El tema de felixcorcoran.es: llega en la dirección (?tema=oscuro) o se eligió antes -->
+    <meta name="theme-color" content="#FAF9F6" data-theme-color />
+    <!-- Claro por defecto, como felixcorcoran.es; oscuro si se pidió al llegar
+         (?tema=oscuro, se recuerda y se quita de la barra) o se eligió antes -->
     <script>
-      (() => {
-        try {
-          const url = new URL(location.href);
-          const pedido = url.searchParams.get('tema');
-          if (pedido === 'oscuro') localStorage.setItem('tema', 'oscuro');
-          if (pedido === 'claro') localStorage.removeItem('tema');
-          if (pedido) {
-            url.searchParams.delete('tema');
-            history.replaceState(null, '', url);
-          }
-          if (localStorage.getItem('tema') === 'oscuro') document.documentElement.dataset.theme = 'dark';
-        } catch {
-          if (location.search.includes('tema=oscuro')) document.documentElement.dataset.theme = 'dark';
+      try {
+        const url = new URL(location.href);
+        const asked = url.searchParams.get('tema');
+        if (asked === 'oscuro') localStorage.setItem('tema', 'oscuro');
+        if (asked === 'claro') localStorage.removeItem('tema');
+        if (asked) {
+          url.searchParams.delete('tema');
+          history.replaceState(null, '', url.pathname + url.search + url.hash);
         }
-      })();
+        if (asked === 'oscuro' || (!asked && localStorage.getItem('tema') === 'oscuro')) {
+          document.documentElement.dataset.theme = 'dark';
+          document.querySelector('[data-theme-color]')?.setAttribute('content', '#131211');
+        }
+      } catch {
+        if (location.search.includes('tema=oscuro')) document.documentElement.dataset.theme = 'dark';
+      }
     </script>
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Radar de subvenciones" />
+    <meta property="og:title" content="Avisos de ayudas para tu negocio · Radar de subvenciones" />
+    <meta
+      property="og:description"
+      content="Recibe por email las ayudas y subvenciones nuevas que encajan con tu negocio."
+    />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:image" content="https://subvenciones.felixcorcoran.es/og.png" />
   </head>
   <body>
     <app-root></app-root>

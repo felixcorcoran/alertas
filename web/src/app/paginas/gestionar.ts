@@ -12,21 +12,21 @@ import { CamposPerfil, FormularioPerfil, formularioPerfil, perfilDe } from '../c
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (borrada()) {
-      <section class="hecho">
+      <section>
         <h1>Te has dado de baja</h1>
-        <p>Hemos borrado tu email y los datos de tu negocio. No te llegará nada más.</p>
+        <p class="lead">Hemos borrado tu email y los datos de tu negocio. No te llegará nada más.</p>
         <p><a href="https://subvenciones.felixcorcoran.es">Volver al radar</a></p>
       </section>
     } @else if (formulario(); as f) {
       <header class="intro">
         <p class="eyebrow">Tus avisos</p>
         <h1>Tu negocio</h1>
-        <p class="entradilla">
+        <p class="lead">
           Los avisos llegan a <strong>{{ email() }}</strong>. Si cambia algo de tu negocio,
           actualízalo aquí y las próximas ayudas se compararán con lo nuevo.
         </p>
       </header>
-      <form [formGroup]="f" (ngSubmit)="guardar(f)">
+      <form class="caja" [formGroup]="f" (ngSubmit)="guardar(f)">
         <app-campos-perfil [grupo]="f" />
         @if (mensaje(); as m) {
           <p [class]="m.ok ? 'ok' : 'error'" role="status">{{ m.texto }}</p>
@@ -39,7 +39,7 @@ import { CamposPerfil, FormularioPerfil, formularioPerfil, perfilDe } from '../c
         </div>
       </form>
     } @else if (error(); as e) {
-      <section class="hecho">
+      <section>
         <h1>Enlace no válido</h1>
         <p class="error" role="alert">{{ e }}</p>
         <p><a routerLink="/">Apuntarme a los avisos</a></p>

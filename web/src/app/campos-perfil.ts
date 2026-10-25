@@ -135,22 +135,32 @@ export function perfilDe(f: FormularioPerfil): Perfil {
       gap: 0.75rem;
       grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
     }
+    /* Las tarjetas del asistente del radar */
     .tarjeta {
       position: relative;
-      display: grid;
-      gap: 0.2rem;
-      padding: 0.9rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+      padding: 1.125rem 1.25rem;
       border-radius: 1rem;
-      border: 1px solid var(--rule);
-      background: var(--surface);
+      border: 1px solid rgb(var(--ink) / 0.12);
+      background: var(--bg);
+      font-weight: 400;
+      line-height: 1.35;
       cursor: pointer;
       transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
+        border-color 0.25s var(--ease-out),
+        transform 0.25s var(--ease-out),
+        box-shadow 0.25s var(--ease-out);
+    }
+    .tarjeta:hover {
+      border-color: rgb(var(--ink) / 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px -16px rgb(var(--ink) / 0.35);
     }
     .tarjeta:has(input:checked) {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent);
+      border-color: var(--text);
+      box-shadow: inset 0 0 0 1px var(--text);
     }
     .tarjeta:has(input:focus-visible) {
       outline: 2px solid var(--text);
@@ -162,7 +172,9 @@ export function perfilDe(f: FormularioPerfil): Perfil {
       pointer-events: none;
     }
     .titulo {
-      font-weight: 600;
+      font-size: 1.0625rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
     }
     .sub {
       font-size: 0.875rem;

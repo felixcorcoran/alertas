@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 
 import { Api, mensajeDeError } from '../api';
 import { CamposPerfil, formularioPerfil, perfilDe } from '../campos-perfil';
-import { deParametros, resumen } from '../perfil';
+import { deParametros, respuestas } from '../perfil';
 
 /**
  * Apuntarse. Desde los resultados del radar se llega con el negocio ya en la
@@ -16,10 +16,10 @@ import { deParametros, resumen } from '../perfil';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (enviado(); as email) {
-      <section class="hecho" aria-live="polite">
+      <section aria-live="polite">
         <p class="eyebrow">Casi está</p>
         <h1>Revisa tu correo</h1>
-        <p>
+        <p class="lead">
           Te hemos escrito a <strong>{{ email }}</strong
           >. Pulsa el enlace del correo para confirmar y empezar a recibir los avisos.
         </p>
@@ -32,7 +32,7 @@ import { deParametros, resumen } from '../perfil';
       <header class="intro">
         <p class="eyebrow">Avisos por email</p>
         <h1>Las ayudas nuevas para tu negocio, en tu correo</h1>
-        <p class="entradilla">
+        <p class="lead">
           Cada mañana el
           <a href="https://subvenciones.felixcorcoran.es">Radar de subvenciones</a>
           recoge las convocatorias nuevas de toda España. Si alguna encaja con tu negocio, te llega
@@ -41,13 +41,17 @@ import { deParametros, resumen } from '../perfil';
         </p>
       </header>
 
-      <form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+      <form class="caja" [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
         @if (desdeRadar()) {
-          <p class="desde-radar">
-            <span class="eyebrow">Tu negocio</span>
-            {{ resumenRadar }}
-            <button type="button" class="enlace" (click)="desdeRadar.set(false)">Cambiar</button>
-          </p>
+          <div class="tu-negocio">
+            <p class="eyebrow">Tu negocio</p>
+            <ul>
+              @for (r of respuestasRadar; track r) {
+                <li>{{ r }}</li>
+              }
+            </ul>
+            <button type="button" class="enlace" (click)="desdeRadar.set(false)">Cambiar respuestas</button>
+          </div>
         } @else {
           <app-campos-perfil [grupo]="formulario.controls.perfil" />
         }
@@ -78,6 +82,9 @@ import { deParametros, resumen } from '../perfil';
 
         <button class="boton" type="submit" [disabled]="enviando()">
           {{ enviando() ? 'Enviando…' : 'Avisarme de las ayudas nuevas' }}
+          @if (!enviando()) {
+            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1.5 6h9M7 2.5 10.5 6 7 9.5"></path></svg>
+          }
         </button>
         @if (lento()) {
           <p class="nota" aria-live="polite">
@@ -93,7 +100,7 @@ export class Alta {
 
   private readonly inicial = deParametros(new URLSearchParams(location.search));
   protected readonly desdeRadar = signal(this.inicial !== null);
-  protected readonly resumenRadar = this.inicial ? resumen(this.inicial) : '';
+  protected readonly respuestasRadar = this.inicial ? respuestas(this.inicial) : [];
 
   protected readonly formulario = new FormGroup({
     perfil: formularioPerfil(this.inicial),
