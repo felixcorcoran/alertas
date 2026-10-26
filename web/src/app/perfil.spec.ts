@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { COMUNIDADES, PROVINCIAS, SECTORES, aParametros, deParametros, resumen } from './perfil';
-import { formularioPerfil, perfilDe } from './campos-perfil';
+import { COMUNIDADES, PROVINCIAS, SECTORES, aParametros, deParametros, respuestas, resumen } from './perfil';
 
 const q = (s: string) => new URLSearchParams(s);
 
@@ -57,14 +56,16 @@ describe('textos', () => {
   });
 });
 
-describe('el formulario', () => {
-  it('manda el municipio sin espacios y, a quien no ha empezado, sin plantilla ni antigüedad', () => {
-    const f = formularioPerfil();
-    f.setValue({ provincia: 'ES617', municipio: '  Ronda ', forma: 'emprender', empleados: 50, antiguedad: 'mas3', sector: '' });
-    expect(perfilDe(f)).toEqual({ provincia: 'ES617', municipio: 'Ronda', forma: 'emprender', empleados: 0, antiguedad: 'nada', sector: '' });
+describe('las respuestas, una a una', () => {
+  it('como las píldoras de los resultados del radar', () => {
+    expect(respuestas({ provincia: 'ES617', municipio: 'Ronda', forma: 'emprender', empleados: 0, antiguedad: 'nada', sector: '' })).toEqual([
+      'Málaga',
+      'Ronda',
+      'Aún no he empezado',
+    ]);
   });
 
-  it('sin provincia no es válido', () => {
-    expect(formularioPerfil().valid).toBe(false);
+  it('cada comunidad lleva su código, para su silueta', () => {
+    expect(COMUNIDADES.find((c) => c.nombre === 'Andalucía')?.codigo).toBe('ES61');
   });
 });

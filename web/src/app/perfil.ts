@@ -29,8 +29,8 @@ export const PROVINCIAS: Provincia[] = provincias;
 
 /** Comunidades por orden alfabético, cada una con sus provincias o islas */
 export const COMUNIDADES = Object.values(
-  PROVINCIAS.reduce<Record<string, { nombre: string; provincias: Provincia[] }>>((acc, p) => {
-    (acc[p.codigoComunidad] ??= { nombre: p.comunidad, provincias: [] }).provincias.push(p);
+  PROVINCIAS.reduce<Record<string, { codigo: string; nombre: string; provincias: Provincia[] }>>((acc, p) => {
+    (acc[p.codigoComunidad] ??= { codigo: p.codigoComunidad, nombre: p.comunidad, provincias: [] }).provincias.push(p);
     return acc;
   }, {}),
 )

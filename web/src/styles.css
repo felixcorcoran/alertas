@@ -481,6 +481,9 @@ body::before {
 
 /* ───────────── Páginas (como la portada del radar) ───────────── */
 
+/* main ocupa el alto que deja el pie y lo que hay dentro queda centrado a lo
+   ancho y a lo alto, como la portada del radar. Las preguntas grandes del
+   asistente (comunidad y sector) ocupan la pantalla entera: el pie, debajo */
 main {
   box-sizing: border-box;
   display: flex;
@@ -488,11 +491,70 @@ main {
   flex: 1;
   width: var(--frame);
   margin-inline: auto;
-  padding: calc(var(--nav-top) + var(--nav-height) + clamp(1.5rem, 6svh, 4rem)) 0 0;
+  padding: calc(var(--nav-top) + var(--nav-height) + clamp(0.75rem, 4svh, 3rem)) 0 clamp(1.5rem, 4svh, 3rem);
 }
 
-main > * {
+main:has(.asistente--alto) {
+  min-height: 100svh;
+}
+
+.centro {
+  box-sizing: border-box;
+  width: 100%;
   max-width: 46rem;
+  margin: auto;
+  text-align: center;
+}
+
+.centro .lead {
+  margin-inline: auto;
+}
+
+/* Encima del asistente: arriba, no en medio */
+.centro--arriba {
+  margin-block: 0;
+}
+
+.centro .acciones {
+  justify-content: center;
+}
+
+.centro .nota {
+  max-width: 34rem;
+  margin: 1rem auto 0;
+}
+
+/* Las respuestas del negocio, como en los resultados del radar */
+.respuestas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.respuestas li {
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--ink) / 0.14);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.centro .ok,
+.centro .error {
+  margin-top: 1.25rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 h1 {
@@ -566,12 +628,8 @@ a:hover {
 
 /* Entrada suave de cada página */
 @media (prefers-reduced-motion: no-preference) {
-  main > * {
+  .centro {
     animation: entrar 0.7s var(--ease-out) backwards;
-  }
-
-  main > * + * {
-    animation-delay: 0.08s;
   }
 }
 
@@ -582,113 +640,12 @@ a:hover {
   }
 }
 
-/* El formulario: la caja del asistente del radar */
-.caja {
-  margin-top: clamp(1.75rem, 4vw, 2.5rem);
-  display: grid;
-  gap: 1.5rem;
-  padding: clamp(1.25rem, 3.5vw, 2.75rem);
-  border-radius: 1.75rem;
-  background: rgb(var(--surface-rgb) / 0.7);
-  border: 1px solid var(--rule);
-  box-shadow: 0 30px 70px -40px rgb(var(--ink) / 0.35);
-}
-
-.campo {
-  display: grid;
-  gap: 0.5rem;
-  font-size: 0.9375rem;
-  font-weight: 500;
-}
-
-.campo small {
-  font-weight: 300;
-  color: var(--text-muted);
-}
-
-input:not([type='checkbox'], [type='radio']),
-select {
-  box-sizing: border-box;
-  width: 100%;
-  height: 3.25rem;
-  padding: 0 1.125rem;
-  border-radius: 1rem;
-  border: 1px solid rgb(var(--ink) / 0.16);
-  background: var(--bg);
-  color: var(--text);
-  font: inherit;
-  font-size: 1rem;
-  font-weight: 400;
-}
-
-input:focus-visible,
-select:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-
-input[aria-invalid='true'] {
-  border-color: var(--accent-text);
-}
-
-.acepto {
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-  font-size: 0.875rem;
-  font-weight: 300;
-  color: var(--text-muted);
-}
-
-.acepto input {
-  margin: 0.2rem 0 0;
-  width: 1.125rem;
-  height: 1.125rem;
-  accent-color: var(--accent-text);
-  flex: none;
-}
-
-/* Lo que llega del radar: las respuestas, como en sus resultados */
-.tu-negocio {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1rem;
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid var(--rule);
-}
-
-.tu-negocio .eyebrow {
-  flex-basis: 100%;
-}
-
-.tu-negocio ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.tu-negocio li {
-  padding: 0.3rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid rgb(var(--ink) / 0.14);
-  font-size: 0.8125rem;
-  line-height: 1.4;
-}
-
 .acciones {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem 1.5rem;
   margin: clamp(1.5rem, 4vw, 2.25rem) 0 0;
-}
-
-.caja .acciones {
-  margin: 0;
 }
 
 /* El botón coral del radar */

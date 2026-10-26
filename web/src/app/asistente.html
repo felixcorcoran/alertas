@@ -1,0 +1,151 @@
+<section
+  class="asistente"
+  [class.asistente--ancho]="paso() === 'sector'"
+  [class.asistente--alto]="paso() === 'comunidad' || paso() === 'sector'"
+  aria-live="polite"
+>
+  <div class="cabeza">
+    <button type="button" class="atras" (click)="atras()">
+      <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M10.5 6h-9M5 2.5 1.5 6 5 9.5"></path></svg>
+      Atrás
+    </button>
+    <div class="progreso" role="progressbar" aria-label="Progreso" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="progreso()">
+      <span [style.width.%]="progreso()"></span>
+    </div>
+  </div>
+
+  @switch (paso()) {
+    @case ('comunidad') {
+      <div class="paso">
+        <p class="contador">{{ contador() }}</p>
+        <h2>¿Dónde está tu negocio?</h2>
+        <p class="pista">Elige tu comunidad autónoma.</p>
+        <ul class="rejilla rejilla--formas">
+          @for (c of comunidades; track c.codigo; let i = $index) {
+            <li [style.--i]="i">
+              <button type="button" class="tarjeta tarjeta--forma" [attr.aria-pressed]="elegido('comunidad', c.codigo)" (click)="elegirComunidad(c.codigo)">
+                <svg viewBox="0 0 100 100" aria-hidden="true"><path [attr.d]="siluetas.comunidades[c.codigo]" pathLength="1" /></svg>
+                <span>{{ c.nombre }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+    @case ('provincia') {
+      <div class="paso">
+        <p class="contador">{{ contador() }}</p>
+        <h2>{{ islas() ? '¿En qué isla?' : '¿En qué provincia?' }}</h2>
+        <p class="pista">{{ comunidad()?.nombre }}</p>
+        <ul class="rejilla rejilla--formas">
+          @for (p of comunidad()?.provincias ?? []; track p.codigo; let i = $index) {
+            <li [style.--i]="i">
+              <button type="button" class="tarjeta tarjeta--forma" [attr.aria-pressed]="elegido('provincia', p.codigo)" (click)="elegirProvincia(p.codigo)">
+                <svg viewBox="0 0 100 100" aria-hidden="true"><path [attr.d]="siluetas.provincias[p.codigo]" pathLength="1" /></svg>
+                <span>{{ p.nombre }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+    @case ('municipio') {
+      <div class="paso">
+        <p class="contador">{{ contador() }}</p>
+        <h2>¿En qué municipio?</h2>
+        <p class="pista">Muchas ayudas son de un ayuntamiento y solo valen para negocios de allí.</p>
+        <div class="buscador">
+          <label class="sr-only" for="municipio">Municipio</label>
+          <input
+            #buscador
+            id="municipio"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-controls="municipios"
+            [attr.aria-expanded]="sugerencias().length > 0"
+            [attr.aria-activedescendant]="activo() >= 0 ? 'municipio-' + activo() : null"
+            placeholder="Empieza a escribir…"
+            [value]="escrito()"
+            (input)="escribir(buscador.value)"
+            (keydown)="teclas($event)"
+            (blur)="cerrarSugerencias()"
+          />
+          @if (sugerencias().length) {
+            <ul id="municipios" class="sugerencias" role="listbox">
+              @for (s of sugerencias(); track s.m; let i = $index) {
+                <li [id]="'municipio-' + i" role="option" [attr.aria-selected]="i === activo()" (mousedown)="$event.preventDefault(); elegirMunicipio(s.m)">
+                  {{ s.antes }}<mark>{{ s.marca }}</mark>{{ s.despues }}
+                </li>
+              }
+            </ul>
+          }
+        </div>
+        <div class="acciones">
+          <button type="button" class="seguir" (click)="seguirMunicipio()">Siguiente</button>
+          <button type="button" class="enlace" (click)="saltarMunicipio()">Prefiero no decirlo</button>
+        </div>
+      </div>
+    }
+    @case ('forma') {
+      <div class="paso">
+        <p class="contador">{{ contador() }}</p>
+        <h2>Tu negocio es…</h2>
+        <ul class="rejilla rejilla--grandes">
+          @for (f of formas; track f[0]; let i = $index) {
+            <li [style.--i]="i">
+              <button type="button" class="tarjeta tarjeta--grande" [attr.aria-pressed]="elegido('forma', f[0])" (click)="elegirForma(f[0])">
+                <span class="titulo">{{ f[1].titulo }}</span>
+                <span class="sub">{{ f[1].sub }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+    @case ('empleados') {
+      <div class="paso">
+        <p class="contador">{{ contador() }}</p>
+        <h2>¿Cuántas personas trabajan contigo?</h2>
+        <ul class="rejilla rejilla--lista">
+          @for (t of plantilla; track t[0]; let i = $index) {
+            <li [style.--i]="i">
+              <button type="button" class="tarjeta" [attr.aria-pressed]="elegido('empleados', t[0])" (click)="elegirEmpleados(t[0])">{{ t[1] }}</button>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+    @case ('antiguedad') {
+      <div class="paso">
+        <p class="contador">{{ contador() }}</p>
+        <h2>¿Cuánto llevas con el negocio?</h2>
+        <ul class="rejilla rejilla--lista">
+          @for (a of antiguedades; track a[0]; let i = $index) {
+            <li [style.--i]="i">
+              <button type="button" class="tarjeta" [attr.aria-pressed]="elegido('antiguedad', a[0])" (click)="elegirAntiguedad(a[0])">{{ a[1] }}</button>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+    @case ('sector') {
+      <div class="paso">
+        <p class="contador">{{ contador() }}</p>
+        <h2>¿A qué se dedica?</h2>
+        <ul class="rejilla rejilla--sectores">
+          @for (s of sectores; track s.letra; let i = $index) {
+            <li [style.--i]="i">
+              <button type="button" class="tarjeta" [attr.aria-pressed]="elegido('sector', s.letra)" (click)="elegirSector(s.letra)">{{ s.nombre }}</button>
+            </li>
+          }
+          <li [style.--i]="sectores.length">
+            <button type="button" class="tarjeta tarjeta--suave" [attr.aria-pressed]="elegido('sector', '')" (click)="elegirSector('')">No lo sé o es otra cosa</button>
+          </li>
+        </ul>
+      </div>
+    }
+  }
+</section>

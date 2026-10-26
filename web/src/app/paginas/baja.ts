@@ -13,11 +13,11 @@ import { Api, mensajeDeError, tokenValido } from '../api';
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section>
+    <section class="centro">
       @if (hecha()) {
         <h1>Te has dado de baja</h1>
         <p class="lead">Hemos borrado tu email y los datos de tu negocio. No te llegará nada más.</p>
-        <p><a href="https://subvenciones.felixcorcoran.es">Volver al radar</a></p>
+        <div class="acciones"><a class="enlace" href="https://subvenciones.felixcorcoran.es" data-site-link>Volver al radar</a></div>
       } @else {
         <p class="eyebrow">Avisos por email</p>
         <h1>¿Dejar de recibir los avisos?</h1>
