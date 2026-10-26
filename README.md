@@ -23,10 +23,10 @@ npx tsx herramientas/casos-encaje.mts ../subvenciones
 
 ## Cómo está hecho
 
-- **API:** Java 25 y Spring Boot 4 (Web MVC, Data JPA, Validation, Actuator), PostgreSQL con migraciones de Flyway. Los correos van por la API HTTP de Resend. Docker para Render.
-- **Panel:** Angular 21 (componentes standalone, signals, sin zone.js, formularios reactivos tipados), en Vercel. Vercel pasa `/api` a Render: un solo dominio, sin CORS para el visitante y la baja con un clic en la misma dirección.
+- **API:** Java 25 y Spring Boot 4 (Web MVC, Data JPA, Validation, Actuator), PostgreSQL con migraciones de Flyway. Los correos van por la API HTTP de Resend. Corre en Docker en un Space de Hugging Face, que se actualiza desde GitHub en cada push (`.github/workflows/despliegue.yml`).
+- **Panel:** Angular 21 (componentes standalone, signals, sin zone.js, formularios reactivos tipados), en Vercel. Vercel pasa `/api` al Space: un solo dominio, sin CORS para el visitante y la baja con un clic en la misma dirección.
 - **Pruebas:** JUnit con un PostgreSQL embebido de verdad (sin Docker), MockMvc y un reloj controlable para las 48 horas y el tope diario; Vitest en el panel. GitHub Actions las pasa en cada push, junto al build de la imagen Docker.
-- **Coste: cero.** Render, Neon, Resend, Vercel y GitHub Actions en sus planes gratuitos. Render duerme la API si nadie la usa: el panel la despierta al abrirse y el cron reintenta.
+- **Coste: cero.** Hugging Face Spaces, Neon, Resend, Vercel y GitHub Actions en sus planes gratuitos, sin tarjeta. El Space se duerme si pasa días sin uso: el panel lo despierta al abrirse y el cron diario reintenta hasta que responde.
 
 ```
 api/src/main/java/es/felixcorcoran/alertas/

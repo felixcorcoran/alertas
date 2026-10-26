@@ -21,6 +21,6 @@ jobs:
             echo "Falta ALERTAS_API_URL o ALERTAS_CLAVE_AVISOS: sin desplegar aún, no hay nada que hacer"
             exit 0
           fi
-          # El plan gratuito de Render duerme la API: el primer intento la despierta
+          # El Space gratuito se duerme si pasa días sin uso: el primer intento lo despierta
           curl -fsS --retry 6 --retry-delay 20 --retry-all-errors --max-time 180 \
             -X POST "$API/api/avisos" -H "Authorization: Bearer $CLAVE"

@@ -56,7 +56,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
       <p>Para que el servicio funcione, estos proveedores tratan los datos por encargo:</p>
       <ul>
         <li><a href="https://vercel.com/legal/privacy-policy">Vercel</a>, que aloja esta página.</li>
-        <li><a href="https://render.com/privacy">Render</a>, que aloja el servidor de los avisos.</li>
+        <li><a href="https://huggingface.co/privacy">Hugging Face</a>, que aloja el servidor de los avisos.</li>
         <li><a href="https://neon.com/privacy-policy">Neon</a>, que aloja la base de datos.</li>
         <li><a href="https://resend.com/legal/privacy-policy">Resend</a>, que envía los correos.</li>
       </ul>

@@ -1,0 +1,51 @@
+name: Despliegue de la API
+
+# La API vive en un Space de Hugging Face (Docker, gratis y sin tarjeta).
+# Cada push que toca la API sube aquí el mismo Dockerfile y el código; el
+# Space construye la imagen y la arranca. Las claves (Neon, Resend, la del
+# cron) son secretos del Space y no pasan por aquí.
+on:
+  push:
+    branches: [main]
+    paths: ['api/**', 'datos/**', 'despliegue/**', '.github/workflows/despliegue.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: despliegue
+
+jobs:
+  space:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar lo que se sube
+        run: |
+          mkdir -p space
+          cp -r datos space/
+          rsync -a --exclude target api space/
+          cp api/Dockerfile space/Dockerfile
+          cp despliegue/huggingface/README.md space/README.md
+      - name: Subir al Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "Falta el secreto HF_TOKEN: no se despliega"
+            exit 0
+          fi
+          pip install -q huggingface_hub
+          python - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+
+          space = 'felixxjbk/alertas-api'
+          api = HfApi(token=os.environ['HF_TOKEN'])
+          api.create_repo(space, repo_type='space', space_sdk='docker', exist_ok=True)
+          # Lo que no es secreto va como variable del Space
+          web = 'https://alertas.felixcorcoran.es'
+          for clave, valor in {'ALERTAS_WEB': web, 'ALERTAS_API': web, 'ALERTAS_ORIGENES': web}.items():
+              api.add_space_variable(space, clave, valor)
+          api.upload_folder(repo_id=space, repo_type='space', folder_path='space',
+                            delete_patterns='*', commit_message=os.environ.get('GITHUB_SHA', 'despliegue'))
+          print(f'Subido: https://huggingface.co/spaces/{space}')
+          PY

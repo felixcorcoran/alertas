@@ -39,7 +39,7 @@ jobs:
       - run: npx ng test --watch=false
       - run: npm run build
 
-  # La imagen que despliega Render tiene que construirse
+  # La imagen que se despliega en el Space tiene que construirse
   imagen:
     runs-on: ubuntu-latest
     steps:

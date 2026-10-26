@@ -11,15 +11,15 @@ export interface Suscripcion {
 }
 
 /**
- * La API de los avisos (Spring Boot). En producción, Vercel pasa /api a
- * Render (vercel.json); en local, el proxy de ng serve (proxy.conf.json).
+ * La API de los avisos (Spring Boot). En producción, Vercel pasa /api al
+ * Space de Hugging Face (vercel.json); en local, el proxy de ng serve (proxy.conf.json).
  */
 @Injectable({ providedIn: 'root' })
 export class Api {
   private readonly http = inject(HttpClient);
 
   /**
-   * El plan gratuito de Render duerme la API si nadie la usa: se la despierta
+   * El Space gratuito se duerme si nadie lo usa: se le despierta
    * al abrir la página, para que al enviar el formulario ya esté en pie.
    */
   despertar(): void {

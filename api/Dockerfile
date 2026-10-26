@@ -1,4 +1,4 @@
-# La API para Render. Se construye desde la raíz del repositorio (necesita datos/):
+# La API (Space de Hugging Face, ver despliegue/). Se construye desde la raíz del repositorio (necesita datos/):
 #   docker build -f api/Dockerfile .
 FROM eclipse-temurin:25-jdk AS build
 WORKDIR /src
@@ -12,7 +12,7 @@ RUN cd api && sh mvnw -B -q package -DskipTests
 FROM eclipse-temurin:25-jre
 WORKDIR /app
 COPY --from=build /src/api/target/alertas-*.jar app.jar
-# 512 MB en el plan gratuito: poca pila, un recolector sencillo y arranque rápido
+# Poca memoria y arranque rápido: un recolector sencillo y poca pila
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xss512k"
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
