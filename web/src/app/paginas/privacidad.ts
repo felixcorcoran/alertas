@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 /**
  * Política de privacidad de los avisos (RGPD art. 13). Si cambia lo que se
  * guarda o quién lo trata, hay que cambiarla aquí y subir Ajustes.PRIVACIDAD
- * en la API.
+ * en la API (Ajustes.java) y en web/api/_lib/suscripciones.mjs.
  */
 @Component({
   selector: 'app-privacidad',
@@ -12,7 +12,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
     <article class="texto">
       <p class="eyebrow">Avisos del Radar de subvenciones</p>
       <h1>Política de privacidad</h1>
-      <p class="nota">Última revisión: 25 de octubre de 2026</p>
+      <p class="nota">Última revisión: 26 de octubre de 2026</p>
 
       <h2>Quién trata tus datos</h2>
       <p>
@@ -35,8 +35,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
         </li>
       </ul>
       <p>
-        La IP desde la que te apuntas solo se usa en memoria, durante diez minutos, para frenar
-        abusos. No se guarda.
+        De la IP desde la que te apuntas no se guarda la dirección, solo una huella cifrada
+        (SHA-256), durante diez minutos, para frenar abusos. Después se borra.
       </p>
 
       <h2>Para qué y con qué base</h2>
@@ -55,10 +55,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
       <h2>Quién más los trata</h2>
       <p>Para que el servicio funcione, estos proveedores tratan los datos por encargo:</p>
       <ul>
-        <li><a href="https://vercel.com/legal/privacy-policy">Vercel</a>, que aloja esta página.</li>
-        <li><a href="https://huggingface.co/privacy">Hugging Face</a>, que aloja el servidor de los avisos.</li>
+        <li><a href="https://vercel.com/legal/privacy-policy">Vercel</a>, que aloja esta página y recibe los formularios.</li>
         <li><a href="https://neon.com/privacy-policy">Neon</a>, que aloja la base de datos.</li>
         <li><a href="https://resend.com/legal/privacy-policy">Resend</a>, que envía los correos.</li>
+        <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub</a>, donde se ejecuta cada mañana el reparto de las ayudas.</li>
       </ul>
       <p>
         Algunos son empresas de Estados Unidos; en sus políticas de privacidad explican las

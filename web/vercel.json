@@ -1,8 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [
-    { "source": "/api/:ruta*", "destination": "https://felixxjbk-alertas-api.hf.space/api/:ruta*" },
-    { "source": "/actuator/health", "destination": "https://felixxjbk-alertas-api.hf.space/actuator/health" },
-    { "source": "/((?!api/|actuator/).*)", "destination": "/index.html" }
-  ]
+  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
 }

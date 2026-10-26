@@ -11,20 +11,13 @@ export interface Suscripcion {
 }
 
 /**
- * La API de los avisos (Spring Boot). En producción, Vercel pasa /api al
- * Space de Hugging Face (vercel.json); en local, el proxy de ng serve (proxy.conf.json).
+ * La API de los avisos. En producción la sirven las funciones de Vercel
+ * (web/api/); en local, la API Spring Boot a través del proxy de ng serve
+ * (proxy.conf.json). Las dos responden igual.
  */
 @Injectable({ providedIn: 'root' })
 export class Api {
   private readonly http = inject(HttpClient);
-
-  /**
-   * El Space gratuito se duerme si nadie lo usa: se le despierta
-   * al abrir la página, para que al enviar el formulario ya esté en pie.
-   */
-  despertar(): void {
-    this.http.get('/actuator/health').subscribe({ error: () => {} });
-  }
 
   apuntar(email: string, perfil: Perfil): Promise<unknown> {
     return firstValueFrom(this.http.post('/api/suscripciones', { email, perfil, acepto: true }));

@@ -33,7 +33,7 @@ public class LimitePorIp {
 		return c.veces() > maximo;
 	}
 
-	/** La IP de quien llama: detrás de los proxies (Vercel, Hugging Face), la primera de X-Forwarded-For */
+	/** La IP de quien llama: detrás de un proxy, la primera de X-Forwarded-For */
 	public static String ip(HttpServletRequest peticion) {
 		String reenviada = peticion.getHeader("X-Forwarded-For");
 		if (reenviada != null && !reenviada.isBlank()) return reenviada.split(",")[0].strip();

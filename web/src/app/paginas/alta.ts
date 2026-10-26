@@ -86,11 +86,6 @@ import { deParametros, respuestas } from '../perfil';
             <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1.5 6h9M7 2.5 10.5 6 7 9.5"></path></svg>
           }
         </button>
-        @if (lento()) {
-          <p class="nota" aria-live="polite">
-            El servidor se estaba echando la siesta: puede tardar hasta un minuto en despertar.
-          </p>
-        }
       </form>
     }
   `,
@@ -109,13 +104,8 @@ export class Alta {
   });
 
   protected readonly enviando = signal(false);
-  protected readonly lento = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly enviado = signal<string | null>(null);
-
-  constructor() {
-    this.api.despertar();
-  }
 
   protected async enviar() {
     const f = this.formulario.controls;
@@ -130,7 +120,6 @@ export class Alta {
 
     this.error.set(null);
     this.enviando.set(true);
-    const aviso = setTimeout(() => this.lento.set(true), 4000);
     try {
       await this.api.apuntar(f.email.value, perfilDe(f.perfil));
       this.enviado.set(f.email.value);
@@ -138,9 +127,7 @@ export class Alta {
     } catch (e) {
       this.error.set(mensajeDeError(e));
     } finally {
-      clearTimeout(aviso);
       this.enviando.set(false);
-      this.lento.set(false);
     }
   }
 }

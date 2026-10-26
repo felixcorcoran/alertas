@@ -37,9 +37,10 @@ jobs:
       # Respeta las versiones del lock igualmente.
       - run: npm install --no-audit --no-fund
       - run: npx ng test --watch=false
+      - run: npm run test:api
       - run: npm run build
 
-  # La imagen que se despliega en el Space tiene que construirse
+  # La API en contenedor tiene que seguir construyéndose
   imagen:
     runs-on: ubuntu-latest
     steps:

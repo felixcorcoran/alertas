@@ -1,4 +1,4 @@
-# La API (Space de Hugging Face, ver despliegue/). Se construye desde la raíz del repositorio (necesita datos/):
+# La API en contenedor (lista para Render u otro). Se construye desde la raíz del repositorio (necesita datos/):
 #   docker build -f api/Dockerfile .
 FROM eclipse-temurin:25-jdk AS build
 WORKDIR /src
