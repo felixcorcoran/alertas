@@ -8,15 +8,36 @@ let repo;
 export const bd = () => (repo ??= repositorio());
 export { enviar };
 
+/** El radar se apunta desde su propia web (otro origen): solo él puede llamar desde el navegador */
+const ORIGENES = ['https://subvenciones.felixcorcoran.es', 'http://localhost:4321'];
+
+function conCors(request, respuesta) {
+  const origen = request.headers.get('origin');
+  if (origen && ORIGENES.includes(origen)) {
+    respuesta.headers.set('Access-Control-Allow-Origin', origen);
+    respuesta.headers.set('Vary', 'Origin');
+  }
+  return respuesta;
+}
+
 /** Envuelve una función: ErrorHttp → su estado; cualquier otra cosa → 500 sin detalles */
 export const manejar = (fn) => async (request) => {
   try {
-    return await fn(request);
+    return conCors(request, await fn(request));
   } catch (e) {
-    if (e instanceof ErrorHttp) return Response.json({ error: e.motivo }, { status: e.estado });
+    if (e instanceof ErrorHttp) return conCors(request, Response.json({ error: e.motivo }, { status: e.estado }));
     console.error(e);
-    return Response.json({ error: 'interno' }, { status: 500 });
+    return conCors(request, Response.json({ error: 'interno' }, { status: 500 }));
   }
+};
+
+/** La pregunta previa del navegador antes de un POST con JSON desde otro origen */
+export const opciones = (request) => {
+  const r = conCors(request, new Response(null, { status: 204 }));
+  r.headers.set('Access-Control-Allow-Methods', 'POST');
+  r.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+  r.headers.set('Access-Control-Max-Age', '86400');
+  return r;
 };
 
 /** El último trozo de la ruta: /api/suscripciones/{token} */
