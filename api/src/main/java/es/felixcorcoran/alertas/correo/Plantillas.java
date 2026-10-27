@@ -101,10 +101,11 @@ public class Plantillas {
 			String ficha = ajustes.radar() + "/ayudas/" + c.codigo();
 			String estado = a.encaje().estado() == Encaje.Estado.si ? "Puedes pedirla" : "Revisa los detalles";
 			String importe = c.ia() != null && c.ia().importe() != null ? c.ia().importe() : null;
-			String cierre = c.cierre() != null ? "Hasta el " + EncajeService.fechaLarga(c.cierre()) : null;
+			// Sin fecha de cierre no se sabe si sigue abierta: se dice, en vez de callarlo
+			String cierre = c.cierre() != null ? "Hasta el " + EncajeService.fechaLarga(c.cierre()) : "Sin fecha de cierre confirmada";
 			List<String> datos = new ArrayList<>();
 			if (importe != null) datos.add(importe);
-			if (cierre != null) datos.add(cierre);
+			datos.add(cierre);
 			String revisar = a.encaje().motivos().stream()
 					.filter(m -> m.tipo().equals("revisa"))
 					.map(Encaje.Motivo::texto)

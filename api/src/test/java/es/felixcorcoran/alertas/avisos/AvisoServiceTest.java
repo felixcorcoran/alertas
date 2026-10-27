@@ -81,6 +81,14 @@ class AvisoServiceTest extends PruebaIntegracion {
 	}
 
 	@Test
+	void sinFechaDeCierreElCorreoLoDiceEnVezDeCallarlo() throws Exception {
+		publicar(ayuda("2", "ES61", null, true));
+		pasada().andExpect(jsonPath("$.nuevas").value(1)).andExpect(jsonPath("$.correos").value(1));
+		assertThat(ultimo().texto()).contains("Ayuda 2", "Sin fecha de cierre confirmada").doesNotContain("Hasta el");
+		assertThat(ultimo().html()).contains("Sin fecha de cierre confirmada");
+	}
+
+	@Test
 	void loQueNoEncajaNoSeManda() throws Exception {
 		publicar(ayuda("2", "ES30", "2026-12-31", true));
 		pasada().andExpect(jsonPath("$.nuevas").value(1)).andExpect(jsonPath("$.avisos").value(0));
