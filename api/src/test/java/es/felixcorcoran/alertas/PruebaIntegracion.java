@@ -51,7 +51,7 @@ public abstract class PruebaIntegracion {
 	@BeforeEach
 	void limpiar() {
 		mvc = MockMvcBuilders.webAppContextSetup(contexto).build();
-		jdbc.execute("truncate avisos, suscriptores, convocatorias_vistas");
+		jdbc.execute("truncate avisos, suscriptores, convocatorias_vistas, guardadas");
 		buzon.enviados.clear();
 		fuente.convocatorias = List.of();
 		reloj.poner(Reloj.INICIO);
@@ -63,11 +63,26 @@ public abstract class PruebaIntegracion {
 	}
 
 	protected ResultActions alta(String email, String perfil, String ip) throws Exception {
+		return altaCon(email, perfil, "", ip);
+	}
+
+	/** Con campos de más en el alta (frecuencia, seguidas): «,"frecuencia":"semanal"» */
+	protected ResultActions altaCon(String email, String perfil, String extra, String ip) throws Exception {
 		return mvc.perform(post("/api/suscripciones")
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("X-Forwarded-For", ip)
 				.content("""
-						{"email":"%s","perfil":%s,"acepto":true}""".formatted(email, perfil)));
+						{"email":"%s","perfil":%s,"acepto":true%s}""".formatted(email, perfil, extra)));
+	}
+
+	/** Se apunta con campos de más y confirma; devuelve el token */
+	protected String apuntadoCon(String email, String perfil, String extra) throws Exception {
+		altaCon(email, perfil, extra, "203.0.113." + IPS.incrementAndGet() % 250);
+		String t = token(ultimo());
+		mvc.perform(post("/api/suscripciones/confirmar")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"token\":\"" + t + "\"}"));
+		return t;
 	}
 
 	/** El token del enlace de un correo */

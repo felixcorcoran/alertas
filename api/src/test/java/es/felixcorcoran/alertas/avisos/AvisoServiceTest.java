@@ -147,4 +147,97 @@ class AvisoServiceTest extends PruebaIntegracion {
 		assertThat(buzon.enviados).extracting(m -> m.para())
 				.containsExactlyInAnyOrder("ana@ejemplo.es", "luis@ejemplo.es", "eva@ejemplo.es");
 	}
+
+	@Test
+	void siCambiaElPlazoDeUnaAyudaYaEnviadaSeAvisaUnaVez() throws Exception {
+		publicar(ayuda("2", "ES61", "2026-12-31", true));
+		pasada().andExpect(jsonPath("$.correos").value(1));
+
+		// Se amplía el plazo
+		reloj.adelantar(Duration.ofDays(1));
+		publicadas.clear();
+		publicar(ayuda("1", "ES61", "2026-12-31", true), ayuda("2", "ES61", "2027-01-31", true));
+		pasada().andExpect(jsonPath("$.cambiosDePlazo").value(1)).andExpect(jsonPath("$.correos").value(1));
+		var m = ultimo();
+		assertThat(m.asunto()).isEqualTo("Ha cambiado el plazo de una ayuda");
+		assertThat(m.texto()).contains("Ayuda 2", "Ahora hasta el 31 de enero de 2027 (antes, hasta el 31 de diciembre de 2026)", "/ayudas/2")
+				.doesNotContain("Publicadas");
+		assertThat(m.html()).contains("Han cambiado de plazo");
+
+		// Ya avisado: no se repite
+		reloj.adelantar(Duration.ofDays(1));
+		pasada().andExpect(jsonPath("$.cambiosDePlazo").value(0)).andExpect(jsonPath("$.correos").value(0));
+		assertThat(buzon.enviados).hasSize(2);
+	}
+
+	@Test
+	void unCambioQueVuelveAtrasAntesDeAvisarseNoSeAvisa() throws Exception {
+		apuntadoCon("luis@ejemplo.es", PERFIL, ",\"frecuencia\":\"semanal\"");
+		publicar(ayuda("2", "ES61", "2026-12-31", true));
+		pasada();
+		buzon.enviados.clear();
+
+		// Luis es semanal: el cambio queda pendiente...
+		reloj.adelantar(Duration.ofDays(1));
+		publicadas.clear();
+		publicar(ayuda("1", "ES61", "2026-12-31", true), ayuda("2", "ES61", "2027-01-31", true));
+		pasada().andExpect(jsonPath("$.cambiosDePlazo").value(2));
+		buzon.enviados.clear();
+
+		// ...y el plazo vuelve al de antes antes de su correo: no hay nada que avisarle.
+		// A Ana (diaria) ya se le avisó del cambio, así que a ella sí se le avisa de la vuelta
+		reloj.adelantar(Duration.ofDays(1));
+		publicadas.clear();
+		publicar(ayuda("1", "ES61", "2026-12-31", true), ayuda("2", "ES61", "2026-12-31", true));
+		reloj.adelantar(Duration.ofDays(6));
+		pasada();
+		assertThat(buzon.enviados).extracting(m -> m.para()).containsExactly("ana@ejemplo.es");
+		assertThat(ultimo().texto()).contains("Ahora hasta el 31 de diciembre de 2026 (antes, hasta el 31 de enero de 2027)");
+	}
+
+	@Test
+	void lasAyudasQueSigueDesdeElRadarNoLleganComoNuevasPeroSiSusCambiosDePlazo() throws Exception {
+		apuntadoCon("luis@ejemplo.es", PERFIL, ",\"seguidas\":[\"2\",\"no-vale\"]");
+		buzon.enviados.clear();
+
+		publicar(ayuda("2", "ES61", "2026-12-31", true));
+		pasada();
+		// Ana la recibe como nueva; Luis ya la seguía
+		assertThat(buzon.enviados).extracting(m -> m.para()).containsExactly("ana@ejemplo.es");
+
+		reloj.adelantar(Duration.ofDays(1));
+		publicadas.clear();
+		publicar(ayuda("1", "ES61", "2026-12-31", true), ayuda("2", "ES61", null, true));
+		pasada().andExpect(jsonPath("$.cambiosDePlazo").value(2));
+		var luis = buzon.enviados.stream().filter(m -> m.para().equals("luis@ejemplo.es")).toList();
+		assertThat(luis).hasSize(1);
+		assertThat(luis.getFirst().texto())
+				.contains("Ahora sin fecha de cierre confirmada (antes, hasta el 31 de diciembre de 2026)");
+	}
+
+	@Test
+	void conFrecuenciaSemanalLlegaComoMuchoUnCorreoALaSemanaConTodoJunto() throws Exception {
+		apuntadoCon("luis@ejemplo.es", PERFIL, ",\"frecuencia\":\"semanal\"");
+		buzon.enviados.clear();
+
+		publicar(ayuda("2", "ES61", "2026-12-31", true));
+		pasada();
+		assertThat(buzon.enviados).extracting(m -> m.para()).containsExactlyInAnyOrder("ana@ejemplo.es", "luis@ejemplo.es");
+		buzon.enviados.clear();
+
+		for (int dia = 3; dia <= 8; dia++) {
+			reloj.adelantar(Duration.ofDays(1));
+			publicar(ayuda(String.valueOf(dia), "ES61", "2026-12-31", true));
+			pasada();
+		}
+		// Ana, cada día; Luis, aún no
+		assertThat(buzon.enviados).extracting(m -> m.para()).containsOnly("ana@ejemplo.es").hasSize(6);
+
+		reloj.adelantar(Duration.ofDays(1));
+		pasada();
+		var luis = ultimo();
+		assertThat(luis.para()).isEqualTo("luis@ejemplo.es");
+		assertThat(luis.asunto()).isEqualTo("Tu resumen semanal: 6 ayudas nuevas");
+		assertThat(luis.texto()).contains("Publicadas esta semana", "Ayuda 3", "Ayuda 8");
+	}
 }

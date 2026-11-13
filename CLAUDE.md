@@ -15,8 +15,10 @@ Más detalle (arquitectura, privacidad, despliegue) en `README.md`.
   La API REST de Spring hace lo mismo y se usa en local y en pruebas. **Un cambio de endpoint se
   hace en los dos sitios** y las pruebas de ambos deben cubrir los mismos casos.
 - La pasada diaria: `.github/workflows/avisos.yml` arranca Spring con `--alertas.pasada=true`.
-- `api/src/main/java/es/felixcorcoran/alertas/`: `encaje/`, `suscripciones/`, `avisos/`,
-  `correo/`, `convocatorias/`, `web/` (CORS, límite por IP).
+- `api/src/main/java/es/felixcorcoran/alertas/`: `encaje/`, `suscripciones/` (alta con
+  `frecuencia` y `seguidas`, `PUT /api/frecuencia/{token}`), `avisos/` (reparto, cambios de plazo,
+  `Seguimientos`), `guardadas/` (cuenta anónima de guardadas del radar), `correo/`, `convocatorias/`,
+  `web/` (CORS, límite por IP).
 
 ## Reglas
 

@@ -4,10 +4,14 @@ import { firstValueFrom } from 'rxjs';
 
 import { Perfil } from './perfil';
 
+/** Cada cuánto llegan los avisos: cada día que haya algo o un resumen a la semana */
+export type Frecuencia = 'diaria' | 'semanal';
+
 export interface Suscripcion {
   email: string;
   perfil: Perfil;
   confirmado: boolean;
+  frecuencia: Frecuencia;
 }
 
 /**
@@ -33,6 +37,10 @@ export class Api {
 
   cambiar(token: string, perfil: Perfil): Promise<Suscripcion> {
     return firstValueFrom(this.http.put<Suscripcion>(`/api/suscripciones/${token}`, perfil));
+  }
+
+  cambiarFrecuencia(token: string, frecuencia: Frecuencia): Promise<Suscripcion> {
+    return firstValueFrom(this.http.put<Suscripcion>(`/api/frecuencia/${token}`, { frecuencia }));
   }
 
   borrar(token: string): Promise<unknown> {

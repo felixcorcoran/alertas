@@ -39,6 +39,13 @@ public class Plantillas {
 	public record Ayuda(Convocatoria convocatoria, Encaje encaje) {
 	}
 
+	/**
+	 * Una ayuda ya enviada o seguida cuyo plazo ha cambiado. Los plazos, en
+	 * AAAA-MM-DD o '' si no hay fecha de cierre
+	 */
+	public record Cambio(Convocatoria convocatoria, String antes, String ahora) {
+	}
+
 	private final Ajustes ajustes;
 	private final Catalogo catalogo;
 
@@ -86,16 +93,39 @@ public class Plantillas {
 	}
 
 	public Mensaje avisos(String email, Perfil perfil, String token, List<Ayuda> ayudas) {
-		String asunto = ayudas.size() == 1 ? "1 ayuda nueva para tu negocio" : ayudas.size() + " ayudas nuevas para tu negocio";
+		return avisos(email, perfil, token, ayudas, List.of(), false);
+	}
+
+	/** «Hasta el 31 de diciembre de 2026», o «sin fecha de cierre confirmada» */
+	private static String textoPlazo(String plazo) {
+		return plazo == null || plazo.isEmpty() ? "sin fecha de cierre confirmada" : "hasta el " + EncajeService.fechaLarga(plazo);
+	}
+
+	/**
+	 * El correo de cada persona: las ayudas nuevas que le encajan y, si los hay,
+	 * los cambios de plazo de las que ya le enviamos o sigue desde el radar.
+	 * Con frecuencia semanal, es su resumen de la semana.
+	 */
+	public Mensaje avisos(String email, Perfil perfil, String token, List<Ayuda> ayudas, List<Cambio> cambios, boolean semanal) {
+		String asunto;
+		if (ayudas.isEmpty())
+			asunto = cambios.size() == 1 ? "Ha cambiado el plazo de una ayuda" : "Han cambiado los plazos de " + cambios.size() + " ayudas";
+		else if (semanal)
+			asunto = "Tu resumen semanal: " + (ayudas.size() == 1 ? "1 ayuda nueva" : ayudas.size() + " ayudas nuevas");
+		else asunto = ayudas.size() == 1 ? "1 ayuda nueva para tu negocio" : ayudas.size() + " ayudas nuevas para tu negocio";
 		String gestionar = ajustes.web() + "/gestionar?t=" + token;
 		String baja = ajustes.web() + "/baja?t=" + token;
 		String radar = ajustes.radar() + "/?" + parametros(perfil);
 
-		StringBuilder texto = new StringBuilder("Ayudas publicadas desde el último aviso que encajan con tu negocio (")
-				.append(resumen(perfil)).append("):\n\n");
-		StringBuilder html = new StringBuilder("""
-				<p style="margin:0 0 20px;color:#6B6B6B">Publicadas desde el último aviso. Para tu negocio: %s.</p>
-				""".formatted(htmlEscape(resumen(perfil))));
+		StringBuilder texto = new StringBuilder();
+		StringBuilder html = new StringBuilder();
+		if (!ayudas.isEmpty()) {
+			String desde = semanal ? "Publicadas esta semana" : "Publicadas desde el último aviso";
+			texto.append(desde).append(" que encajan con tu negocio (").append(resumen(perfil)).append("):\n\n");
+			html.append("""
+					<p style="margin:0 0 20px;color:#6B6B6B">%s. Para tu negocio: %s.</p>
+					""".formatted(desde, htmlEscape(resumen(perfil))));
+		}
 		for (Ayuda a : ayudas) {
 			Convocatoria c = a.convocatoria();
 			String ficha = ajustes.radar() + "/ayudas/" + c.codigo();
@@ -133,6 +163,25 @@ public class Plantillas {
 					datos.isEmpty() ? "" : "<p style=\"margin:0;color:#6B6B6B;font-size:14px\">" + htmlEscape(String.join(" · ", datos)) + "</p>",
 					revisar.isEmpty() ? "" : "<p style=\"margin:6px 0 0;color:#6B6B6B;font-size:14px\">Revisa: " + htmlEscape(revisar) + "</p>",
 					htmlEscape(ficha)));
+		}
+		if (!cambios.isEmpty()) {
+			texto.append("Han cambiado de plazo (ayudas que te enviamos o que sigues desde el radar):\n\n");
+			html.append("""
+					<p style="margin:%s 0 12px;font-weight:600">Han cambiado de plazo</p>
+					<p style="margin:0 0 16px;color:#6B6B6B">Ayudas que te enviamos o que sigues desde el radar.</p>
+					""".formatted(ayudas.isEmpty() ? "0" : "28px"));
+			for (Cambio x : cambios) {
+				Convocatoria c = x.convocatoria();
+				String ficha = ajustes.radar() + "/ayudas/" + c.codigo();
+				String linea = "Ahora " + textoPlazo(x.ahora()) + " (antes, " + textoPlazo(x.antes()) + ")";
+				texto.append("• ").append(c.titulo()).append("\n  ").append(linea).append("\n  ").append(ficha).append("\n\n");
+				html.append("""
+						<div style="margin:0 0 12px;padding:14px 18px;border:1px solid #E7E4DE;border-radius:14px;background:#fff">
+						<p style="margin:0 0 6px;font-size:16px;font-weight:600;line-height:1.35"><a href="%s" style="color:#171717;text-decoration:none">%s</a></p>
+						<p style="margin:0;color:#3F3F3F;font-size:14px">%s</p>
+						</div>
+						""".formatted(htmlEscape(ficha), htmlEscape(c.titulo()), htmlEscape(linea)));
+			}
 		}
 		html.append(boton("Ver todas tus ayudas en el radar", radar));
 		texto.append("Todas tus ayudas en el radar: ").append(radar).append("\n\n")

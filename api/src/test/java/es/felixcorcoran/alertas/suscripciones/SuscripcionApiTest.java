@@ -14,8 +14,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
 import es.felixcorcoran.alertas.PruebaIntegracion;
+import es.felixcorcoran.alertas.guardadas.Guardadas;
 
 class SuscripcionApiTest extends PruebaIntegracion {
+
+	@org.springframework.beans.factory.annotation.Autowired
+	private Guardadas guardadas;
 
 	private static final String OTRO_PERFIL = """
 			{"provincia":"ES300","municipio":"","forma":"sociedad","empleados":10,"antiguedad":"mas3","sector":"G"}""";
@@ -114,5 +118,36 @@ class SuscripcionApiTest extends PruebaIntegracion {
 	void unaMismaIpNoPuedeApuntarDireccionesSinParar() throws Exception {
 		for (int i = 0; i < 5; i++) alta("persona" + i + "@ejemplo.es", PERFIL, "198.51.100.7").andExpect(status().isAccepted());
 		alta("persona6@ejemplo.es", PERFIL, "198.51.100.7").andExpect(status().isTooManyRequests());
+	}
+
+	@Test
+	void frecuenciaDeLosAvisosAlApuntarseYConSuEnlace() throws Exception {
+		String t = apuntadoCon("ana@ejemplo.es", PERFIL, ",\"frecuencia\":\"semanal\"");
+		mvc.perform(get("/api/suscripciones/" + t)).andExpect(jsonPath("$.frecuencia").value("semanal"));
+
+		mvc.perform(put("/api/frecuencia/" + t).contentType(MediaType.APPLICATION_JSON).content("{\"frecuencia\":\"diaria\"}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.frecuencia").value("diaria"));
+		mvc.perform(put("/api/frecuencia/" + t).contentType(MediaType.APPLICATION_JSON).content("{\"frecuencia\":\"mensual\"}"))
+				.andExpect(status().isBadRequest());
+		mvc.perform(put("/api/frecuencia/" + t).contentType(MediaType.APPLICATION_JSON).content("{}"))
+				.andExpect(status().isBadRequest());
+		mvc.perform(put("/api/frecuencia/" + "a".repeat(43)).contentType(MediaType.APPLICATION_JSON).content("{\"frecuencia\":\"diaria\"}"))
+				.andExpect(status().isNotFound());
+
+		// Sin decirla, diaria; una que no existe, error
+		String otra = apuntado("luis@ejemplo.es", PERFIL);
+		mvc.perform(get("/api/suscripciones/" + otra)).andExpect(jsonPath("$.frecuencia").value("diaria"));
+		altaCon("eva@ejemplo.es", PERFIL, ",\"frecuencia\":\"mensual\"", "192.0.2.9").andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void elRadarCuentaLasGuardadasSinDatosDeNadie() throws Exception {
+		for (int i = 0; i < 3; i++)
+			mvc.perform(post("/api/guardadas").contentType(MediaType.TEXT_PLAIN).content("{\"codigo\":\"938128\"}"))
+					.andExpect(status().isNoContent());
+		mvc.perform(post("/api/guardadas").contentType(MediaType.TEXT_PLAIN).content("{\"codigo\":\"x\"}")).andExpect(status().isBadRequest());
+		mvc.perform(post("/api/guardadas").contentType(MediaType.TEXT_PLAIN).content("no es json")).andExpect(status().isBadRequest());
+		assertThat(guardadas.masGuardadas(7, 10)).containsExactly(new Guardadas.Cuenta("938128", 3));
 	}
 }

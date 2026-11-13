@@ -5,6 +5,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import es.felixcorcoran.alertas.Ajustes;
+import es.felixcorcoran.alertas.avisos.Seguimientos;
 import es.felixcorcoran.alertas.correo.Correo;
 import es.felixcorcoran.alertas.correo.Plantillas;
 import es.felixcorcoran.alertas.encaje.Catalogo;
@@ -38,20 +40,32 @@ public class SuscripcionService {
 	private final Catalogo catalogo;
 	private final Plantillas plantillas;
 	private final Correo correo;
+	private final Seguimientos seguimientos;
 	private final Clock reloj;
 
 	public SuscripcionService(SuscriptorRepository suscriptores, Catalogo catalogo, Plantillas plantillas, Correo correo,
-			Clock reloj) {
+			Seguimientos seguimientos, Clock reloj) {
 		this.suscriptores = suscriptores;
 		this.catalogo = catalogo;
 		this.plantillas = plantillas;
 		this.correo = correo;
+		this.seguimientos = seguimientos;
 		this.reloj = reloj;
 	}
 
 	@Transactional
 	public void apuntar(String email, Perfil perfil) {
+		apuntar(email, perfil, null, List.of());
+	}
+
+	/**
+	 * @param frecuencia «diaria» (o null) o «semanal»
+	 * @param seguidas   las ayudas guardadas en el radar, para avisar si cambia su plazo
+	 */
+	@Transactional
+	public void apuntar(String email, Perfil perfil, String frecuencia, List<String> seguidas) {
 		validar(perfil);
+		Suscriptor.Frecuencia cada = frecuencia(frecuencia);
 		String direccion = email.strip().toLowerCase(Locale.ROOT);
 		Instant ahora = reloj.instant();
 		Optional<Suscriptor> existente = suscriptores.findByEmail(direccion);
@@ -59,7 +73,9 @@ public class SuscripcionService {
 		if (existente.isEmpty()) {
 			Suscriptor nuevo = new Suscriptor(direccion, perfil, token(), Ajustes.PRIVACIDAD, ahora);
 			nuevo.setUltimoAlta(ahora);
+			nuevo.setFrecuencia(cada);
 			suscriptores.save(nuevo);
+			seguimientos.seguir(nuevo.getId(), seguidas, ahora);
 			correo.enviar(plantillas.confirmar(direccion, perfil, nuevo.getToken()));
 			return;
 		}
@@ -70,7 +86,9 @@ public class SuscripcionService {
 		if (s.getEstado() == Suscriptor.Estado.PENDIENTE) {
 			// Aún sin confirmar: vale el último perfil, que es el que se confirmará
 			s.setPerfil(perfil);
+			s.setFrecuencia(cada);
 			s.setConsentimiento(Ajustes.PRIVACIDAD);
+			seguimientos.seguir(s.getId(), seguidas, ahora);
 			correo.enviar(plantillas.confirmar(direccion, perfil, s.getToken()));
 		} else {
 			// Ya apuntado: no se cambia nada sin el enlace de su correo
@@ -98,6 +116,16 @@ public class SuscripcionService {
 		return s;
 	}
 
+	@Transactional
+	public Suscriptor cambiarFrecuencia(String token, String frecuencia) {
+		// Al cambiarla hay que decir cuál: vacía no vale (al apuntarse, vacía es «diaria»)
+		if (frecuencia == null || frecuencia.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "frecuencia");
+		Suscriptor.Frecuencia cada = frecuencia(frecuencia);
+		Suscriptor s = porToken(token);
+		s.setFrecuencia(cada);
+		return s;
+	}
+
 	/** La baja borra la dirección y sus avisos pendientes: no queda nada */
 	@Transactional
 	public void borrar(String token) {
@@ -112,6 +140,14 @@ public class SuscripcionService {
 	private Suscriptor porToken(String token) {
 		return suscriptores.findByToken(token)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "enlace"));
+	}
+
+	private static Suscriptor.Frecuencia frecuencia(String texto) {
+		try {
+			return Suscriptor.Frecuencia.de(texto);
+		} catch (IllegalArgumentException e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "frecuencia");
+		}
 	}
 
 	private void validar(Perfil perfil) {

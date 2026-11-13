@@ -10,8 +10,11 @@ Las ayudas nuevas que encajan con tu negocio, por email. Quien usa el [Radar de 
 
 1. **Alta con doble confirmación, desde el radar.** Al terminar sus preguntas, los resultados del radar ofrecen los avisos: solo falta el email. Una función de Vercel guarda la dirección como pendiente y envía un enlace para confirmarla. Un solo formulario, en un solo sitio. Sin confirmar no se envía nada, y a las 48 horas se borra.
 2. **Pasada diaria.** Después de que el radar haya recogido y leído las convocatorias del día, GitHub Actions arranca la aplicación Spring Boot en modo pasada: lee el JSON del repositorio del radar, compara cada ayuda nueva (ya leída por la IA y abierta) con el negocio de cada persona y deja un aviso si encaja o hay que revisarla.
-3. **Un correo por persona**, como mucho uno al día, con un tope diario para quedarse en el plan gratuito de Resend; lo que no cabe sale al día siguiente.
-4. **Baja con un clic**, desde el pie de cada correo o desde el propio gestor de correo (`List-Unsubscribe`, RFC 8058). La baja borra la dirección y todo lo asociado.
+3. **Cambios de plazo.** De las ayudas ya enviadas, y de las que alguien sigue desde el radar (sus guardadas, si al apuntarse marca la casilla), se apunta el plazo; si cambia, sale en su próximo correo («Han cambiado de plazo»). Si vuelve al de antes sin haberse avisado, no se avisa.
+4. **Un correo por persona**, como mucho uno al día (o uno a la semana, con todo junto, si eligió el resumen semanal al apuntarse o en «Tu negocio»), con un tope diario para quedarse en el plan gratuito de Resend; lo que no cabe sale al día siguiente.
+5. **Baja con un clic**, desde el pie de cada correo o desde el propio gestor de correo (`List-Unsubscribe`, RFC 8058). La baja borra la dirección y todo lo asociado.
+
+**Qué se guarda en el radar.** Cada vez que alguien guarda una ayuda en el radar se suma uno a su cuenta del día (`POST /api/guardadas`, tabla `guardadas`), sin ningún dato de quién; la pasada diaria escribe en su registro las más guardadas de la semana y borra lo de hace más de medio año.
 
 ## El mismo encaje que la web
 

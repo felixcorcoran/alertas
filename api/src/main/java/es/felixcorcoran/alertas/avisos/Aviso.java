@@ -13,7 +13,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/** Una ayuda que encaja con alguien, hasta que sale en su correo */
+/**
+ * Una ayuda que encaja con alguien, hasta que sale en su correo; y después,
+ * para avisarle si cambia su plazo. También las que sigue desde el radar
+ * (seguida: no se le envían como nuevas, solo sus cambios de plazo).
+ */
 @Entity
 @Table(name = "avisos")
 public class Aviso {
@@ -37,14 +41,57 @@ public class Aviso {
 
 	private Instant enviado;
 
+	/** El plazo de la última vez que se avisó de ella: AAAA-MM-DD, '' sin fecha, null si aún no se sabe */
+	private String cierre;
+
+	/** Hay un cambio de plazo por avisar (cierre aún guarda el de antes) */
+	@Column(nullable = false)
+	private boolean cambio;
+
+	@Column(nullable = false)
+	private boolean seguida;
+
 	protected Aviso() {
 	}
 
-	public Aviso(UUID suscriptorId, String codigo, Encaje.Estado estado, Instant creado) {
+	public Aviso(UUID suscriptorId, String codigo, Encaje.Estado estado, Instant creado, String cierre) {
 		this.suscriptorId = suscriptorId;
 		this.codigo = codigo;
 		this.estado = estado;
 		this.creado = creado;
+		this.cierre = cierre;
+	}
+
+	/** Una ayuda que sigue desde el radar: cuenta como ya enviada, y su plazo se apunta en la próxima pasada */
+	public static Aviso seguida(UUID suscriptorId, String codigo, Instant ahora) {
+		Aviso a = new Aviso(suscriptorId, codigo, Encaje.Estado.revisa, ahora, null);
+		a.enviado = ahora;
+		a.seguida = true;
+		return a;
+	}
+
+	public Instant getEnviado() {
+		return enviado;
+	}
+
+	public String getCierre() {
+		return cierre;
+	}
+
+	public void setCierre(String cierre) {
+		this.cierre = cierre;
+	}
+
+	public boolean isCambio() {
+		return cambio;
+	}
+
+	public void setCambio(boolean cambio) {
+		this.cambio = cambio;
+	}
+
+	public boolean isSeguida() {
+		return seguida;
 	}
 
 	public UUID getSuscriptorId() {

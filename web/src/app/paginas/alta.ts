@@ -19,8 +19,9 @@ const RADAR = 'https://subvenciones.felixcorcoran.es';
       <h1>Las ayudas nuevas para tu negocio, en tu correo</h1>
       <p class="lead">
         Cada mañana el Radar de subvenciones recoge las convocatorias nuevas de toda España. Si
-        alguna encaja con tu negocio, te llega un correo con lo que financia, el importe y el plazo.
-        Gratis, sin cuenta y con baja en un clic.
+        alguna encaja con tu negocio, te llega un correo con lo que financia, el importe y el plazo;
+        cada día o, si lo prefieres, un resumen a la semana. Y si cambia el plazo de una que te
+        enviamos, te lo decimos. Gratis, sin cuenta y con baja en un clic.
       </p>
 
       @if (respuestasRadar.length) {
@@ -38,7 +39,7 @@ const RADAR = 'https://subvenciones.felixcorcoran.es';
         </a>
       </div>
       <p class="nota">
-        Son seis preguntas sobre tu negocio en el radar. Al final te enseña las ayudas abiertas y,
+        Son unas pocas preguntas sobre tu negocio en el radar. Al final te enseña las ayudas abiertas y,
         debajo, te apuntas a los avisos con tu email.
       </p>
       <p class="nota">¿Ya los recibes? Para cambiar tu negocio o darte de baja, usa los enlaces del pie de cada correo.</p>

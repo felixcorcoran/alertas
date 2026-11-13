@@ -16,6 +16,15 @@ interface AvisoRepository extends JpaRepository<Aviso, Long> {
 
 	List<Aviso> findBySuscriptorIdAndEnviadoIsNull(UUID suscriptorId);
 
+	/** Las ya enviadas o seguidas: de ellas se avisa si cambia el plazo */
+	List<Aviso> findByEnviadoIsNotNull();
+
+	List<Aviso> findByCambioTrueOrderBySuscriptorIdAscIdAsc();
+
+	List<Aviso> findBySuscriptorIdAndCambioTrue(UUID suscriptorId);
+
+	boolean existsBySuscriptorIdAndCodigo(UUID suscriptorId, String codigo);
+
 	/** Correos de avisos ya enviados desde una hora (uno por persona y pasada) */
 	@Query("select count(distinct a.suscriptorId) from Aviso a where a.enviado >= :desde")
 	long correosDesde(Instant desde);
