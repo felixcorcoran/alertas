@@ -1,5 +1,7 @@
 package es.felixcorcoran.alertas.suscripciones;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,7 +38,11 @@ public class SuscripcionController {
 			@NotBlank @Email @Size(max = 254) String email,
 			@NotNull Perfil perfil,
 			/** Ha marcado «He leído la política de privacidad» */
-			@AssertTrue boolean acepto) {
+			@AssertTrue boolean acepto,
+			/** «diaria» (por defecto) o «semanal» */
+			String frecuencia,
+			/** Las ayudas guardadas en el radar que quiere seguir (cambios de plazo) */
+			List<String> seguidas) {
 
 		public Alta {
 			// Los espacios de más al copiar y pegar no deberían impedir apuntarse
@@ -44,10 +50,14 @@ public class SuscripcionController {
 		}
 	}
 
-	public record Vista(String email, Perfil perfil, boolean confirmado) {
+	public record Vista(String email, Perfil perfil, boolean confirmado, String frecuencia, String calendario) {
 		static Vista de(Suscriptor s) {
-			return new Vista(s.getEmail(), s.getPerfil(), s.getEstado() == Suscriptor.Estado.ACTIVO);
+			return new Vista(s.getEmail(), s.getPerfil(), s.getEstado() == Suscriptor.Estado.ACTIVO, s.getFrecuencia().texto(),
+					s.getCalendario());
 		}
+	}
+
+	public record CambioFrecuencia(String frecuencia) {
 	}
 
 	public record Token(@NotBlank @Pattern(regexp = TOKEN) String token) {
@@ -66,7 +76,7 @@ public class SuscripcionController {
 	@ResponseStatus(HttpStatus.ACCEPTED)
 	public void apuntar(@Valid @RequestBody Alta alta, HttpServletRequest peticion) {
 		if (limite.superado(LimitePorIp.ip(peticion))) throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS);
-		servicio.apuntar(alta.email(), alta.perfil());
+		servicio.apuntar(alta.email(), alta.perfil(), alta.frecuencia(), alta.seguidas());
 	}
 
 	@PostMapping("/suscripciones/confirmar")
@@ -82,6 +92,12 @@ public class SuscripcionController {
 	@PutMapping("/suscripciones/{token:" + TOKEN + "}")
 	public Vista cambiar(@PathVariable String token, @RequestBody Perfil perfil) {
 		return Vista.de(servicio.cambiar(token, perfil));
+	}
+
+	/** Cada cuánto recibe los avisos: {"frecuencia":"diaria"} o {"frecuencia":"semanal"} */
+	@PutMapping("/frecuencia/{token:" + TOKEN + "}")
+	public Vista frecuencia(@PathVariable String token, @RequestBody CambioFrecuencia cambio) {
+		return Vista.de(servicio.cambiarFrecuencia(token, cambio == null ? null : cambio.frecuencia()));
 	}
 
 	@DeleteMapping("/suscripciones/{token:" + TOKEN + "}")

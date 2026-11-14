@@ -85,7 +85,11 @@ public class EncajeService {
 		List<Codigo> zonas = c.regiones().stream().filter(r -> r.codigo().startsWith("ES")).toList();
 		if (zonas.isEmpty()) m.revisa("No indica la zona: comprueba en las bases dónde tiene que estar el negocio");
 		else if (zonas.stream().anyMatch(r -> p.provincia().startsWith(r.codigo()))) {
-			m.bien(zonas.stream().anyMatch(r -> r.codigo().equals("ES")) ? "Para toda España" : "Es para tu zona");
+			if (zonas.stream().noneMatch(r -> r.codigo().equals("ES"))) m.bien("Es para tu zona");
+			// La BDNS marca para toda España algunas ayudas de un solo municipio: se dice, para no contradecir el motivo del municipio
+			else if (municipioDe(c) == null) m.bien("Para toda España");
+			else if (deAyuntamiento(c)) m.bien("La BDNS la marca para toda España, pero la convoca un ayuntamiento");
+			else m.bien("La BDNS la marca para toda España, pero las bases la limitan a un municipio");
 		} else m.no("Solo para negocios de " + zonas.stream()
 				.map(r -> catalogo.nombreZona(r.codigo(), r.nombre()))
 				.collect(Collectors.joining(", ")));
@@ -181,9 +185,14 @@ public class EncajeService {
 		return new Encaje(estado, List.copyOf(motivos));
 	}
 
+	/** Si la convoca un ayuntamiento */
+	public static boolean deAyuntamiento(Convocatoria c) {
+		return c.organo().nivel1().equals("LOCAL") && AYUNTAMIENTO.matcher(c.organo().nivel3()).find();
+	}
+
 	/** El municipio al que se limita la ayuda, si se sabe */
 	public static String municipioDe(Convocatoria c) {
-		if (c.organo().nivel1().equals("LOCAL") && AYUNTAMIENTO.matcher(c.organo().nivel3()).find()) {
+		if (deAyuntamiento(c)) {
 			return nombreMunicipio(c.organo().nivel2());
 		}
 		return c.ia() == null ? null : c.ia().condiciones().municipio();

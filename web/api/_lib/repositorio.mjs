@@ -14,14 +14,39 @@ export function repositorio(sql = neon(process.env.DATABASE_URL)) {
     porEmail: async (email) => uno(await sql`select * from suscriptores where email = ${email}`),
     porToken: async (token) => uno(await sql`select * from suscriptores where token = ${token}`),
 
-    crear: async ({ email, perfil: p, token, consentimiento, ahora }) =>
+    crear: async ({ email, perfil: p, token, consentimiento, frecuencia, ahora }) =>
       uno(
         await sql`insert into suscriptores
-          (id, email, provincia, municipio, forma, empleados, antiguedad, sector, token, estado, consentimiento, creado, ultimo_alta)
+          (id, email, provincia, municipio, forma, empleados, antiguedad, sector, token, estado, consentimiento, creado, ultimo_alta, frecuencia)
           values (gen_random_uuid(), ${email}, ${p.provincia}, ${p.municipio}, ${p.forma}, ${p.empleados}, ${p.antiguedad},
-                  ${p.sector}, ${token}, 'PENDIENTE', ${consentimiento}, ${ahora}, ${ahora})
+                  ${p.sector}, ${token}, 'PENDIENTE', ${consentimiento}, ${ahora}, ${ahora}, ${frecuencia})
           returning id`,
       ).id,
+
+    porCalendario: async (calendario) => uno(await sql`select * from suscriptores where calendario = ${calendario}`),
+    ponerCalendario: (id, calendario) => sql`update suscriptores set calendario = ${calendario} where id = ${id}`,
+    /** Las ayudas de alguien: las avisadas o por avisar y las que sigue */
+    codigosAvisos: async (id) => (await sql`select codigo from avisos where suscriptor_id = ${id}`).map((f) => f.codigo),
+
+    cambiarFrecuencia: (id, frecuencia) => sql`update suscriptores set frecuencia = ${frecuencia} where id = ${id}`,
+
+    /**
+     * Las ayudas que sigue desde el radar: como ya enviadas (no llegan como
+     * nuevas) y sin plazo apuntado, que pone la próxima pasada (Aviso.seguida)
+     */
+    seguir: async (id, codigos, ahora) => {
+      for (const codigo of codigos) {
+        await sql`insert into avisos (suscriptor_id, codigo, estado, creado, enviado, seguida)
+          values (${id}, ${codigo}, 'revisa', ${ahora}, ${ahora}, true)
+          on conflict (suscriptor_id, codigo) do nothing`;
+      }
+    },
+
+    /** Suma una a la cuenta de hoy (hora de Madrid) de la ayuda guardada */
+    sumarGuardada: (codigo, ahora) =>
+      sql`insert into guardadas (dia, codigo, veces)
+          values ((${ahora}::timestamptz at time zone 'Europe/Madrid')::date, ${codigo}, 1)
+          on conflict (dia, codigo) do update set veces = guardadas.veces + 1`,
 
     marcarAlta: (id, ahora) => sql`update suscriptores set ultimo_alta = ${ahora} where id = ${id}`,
     activar: (id, ahora) => sql`update suscriptores set estado = 'ACTIVO', confirmado = ${ahora} where id = ${id}`,

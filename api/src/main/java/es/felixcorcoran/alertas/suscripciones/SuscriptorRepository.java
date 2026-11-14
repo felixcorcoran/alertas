@@ -13,6 +13,8 @@ public interface SuscriptorRepository extends JpaRepository<Suscriptor, UUID> {
 
 	Optional<Suscriptor> findByToken(String token);
 
+	Optional<Suscriptor> findByCalendario(String calendario);
+
 	List<Suscriptor> findByEstado(Suscriptor.Estado estado);
 
 	/** Para borrar a quien no confirmó a tiempo (RGPD: minimización) */

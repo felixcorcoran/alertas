@@ -17,6 +17,28 @@ import jakarta.persistence.Table;
 @Table(name = "suscriptores")
 public class Suscriptor {
 
+	/** Cada cuánto recibe los avisos */
+	public enum Frecuencia {
+		/** Un correo cada día que haya algo */
+		DIARIA,
+		/** Como mucho un correo a la semana, con todo junto */
+		SEMANAL;
+
+		/** «diaria» o «semanal», como en la API; null o vacío, diaria */
+		public static Frecuencia de(String texto) {
+			if (texto == null || texto.isBlank()) return DIARIA;
+			return switch (texto.strip().toLowerCase(java.util.Locale.ROOT)) {
+				case "diaria" -> DIARIA;
+				case "semanal" -> SEMANAL;
+				default -> throw new IllegalArgumentException("frecuencia");
+			};
+		}
+
+		public String texto() {
+			return name().toLowerCase(java.util.Locale.ROOT);
+		}
+	}
+
 	public enum Estado {
 		/** Se ha apuntado pero aún no ha pulsado el enlace del correo */
 		PENDIENTE,
@@ -41,6 +63,14 @@ public class Suscriptor {
 
 	@Column(nullable = false)
 	private String consentimiento;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private Frecuencia frecuencia = Frecuencia.DIARIA;
+
+	/** La dirección de su calendario de plazos (aparte del token); null hasta que abre su panel */
+	@Column(unique = true)
+	private String calendario;
 
 	@Column(nullable = false)
 	private Instant creado;
@@ -107,5 +137,25 @@ public class Suscriptor {
 
 	public void setUltimoAviso(Instant ultimoAviso) {
 		this.ultimoAviso = ultimoAviso;
+	}
+
+	public Instant getUltimoAviso() {
+		return ultimoAviso;
+	}
+
+	public String getCalendario() {
+		return calendario;
+	}
+
+	public void setCalendario(String calendario) {
+		this.calendario = calendario;
+	}
+
+	public Frecuencia getFrecuencia() {
+		return frecuencia;
+	}
+
+	public void setFrecuencia(Frecuencia frecuencia) {
+		this.frecuencia = frecuencia;
 	}
 }

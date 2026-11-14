@@ -12,7 +12,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
     <article class="texto">
       <p class="eyebrow">Avisos del Radar de subvenciones</p>
       <h1>Política de privacidad</h1>
-      <p class="nota">Última revisión: 26 de octubre de 2026</p>
+      <p class="nota">Última revisión: 14 de noviembre de 2026</p>
 
       <h2>Quién trata tus datos</h2>
       <p>
@@ -31,9 +31,22 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
         </li>
         <li>
           Las fechas en que te apuntaste, confirmaste y recibiste el último correo, la versión de
-          esta política que aceptaste y qué ayudas te hemos enviado (para no repetirlas).
+          esta política que aceptaste, cada cuánto quieres los avisos (cada día o a la semana) y qué
+          ayudas te hemos enviado, con su plazo, para no repetirlas y avisarte si cambia.
+        </li>
+        <li>
+          Si al apuntarte lo pides, los códigos de las ayudas que tenías guardadas en el radar, para
+          avisarte también si cambia su plazo.
+        </li>
+        <li>
+          Una dirección al azar para tu calendario de plazos, distinta de la de tus enlaces: quien la
+          tenga solo ve las fechas de cierre de tus ayudas, no tu email ni tu negocio.
         </li>
       </ul>
+      <p>
+        Aparte, cuando alguien guarda una ayuda en el radar se suma uno a la cuenta de esa ayuda
+        de ese día, para saber qué interesa. Esa cuenta no lleva ningún dato de quien la guarda.
+      </p>
       <p>
         De la IP desde la que te apuntas no se guarda la dirección, solo una huella cifrada
         (SHA-256), durante diez minutos, para frenar abusos. Después se borra.
@@ -41,8 +54,9 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 
       <h2>Para qué y con qué base</h2>
       <p>
-        Solo para enviarte por email las ayudas nuevas que encajan con tu negocio, como mucho un
-        correo al día. La base es tu consentimiento (artículo 6.1.a del RGPD), que das al marcar la
+        Solo para enviarte por email las ayudas nuevas que encajan con tu negocio y los cambios de
+        plazo de las que te enviamos o sigues, como mucho un correo al día (o a la semana, si lo
+        eliges). La base es tu consentimiento (artículo 6.1.a del RGPD), que das al marcar la
         casilla y confirmar tu dirección, y que puedes retirar en cualquier momento.
       </p>
 
