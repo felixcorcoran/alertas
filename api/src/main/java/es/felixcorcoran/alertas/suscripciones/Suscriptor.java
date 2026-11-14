@@ -68,6 +68,10 @@ public class Suscriptor {
 	@Column(nullable = false)
 	private Frecuencia frecuencia = Frecuencia.DIARIA;
 
+	/** La dirección de su calendario de plazos (aparte del token); null hasta que abre su panel */
+	@Column(unique = true)
+	private String calendario;
+
 	@Column(nullable = false)
 	private Instant creado;
 
@@ -137,6 +141,14 @@ public class Suscriptor {
 
 	public Instant getUltimoAviso() {
 		return ultimoAviso;
+	}
+
+	public String getCalendario() {
+		return calendario;
+	}
+
+	public void setCalendario(String calendario) {
+		this.calendario = calendario;
 	}
 
 	public Frecuencia getFrecuencia() {

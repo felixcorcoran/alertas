@@ -50,9 +50,10 @@ public class SuscripcionController {
 		}
 	}
 
-	public record Vista(String email, Perfil perfil, boolean confirmado, String frecuencia) {
+	public record Vista(String email, Perfil perfil, boolean confirmado, String frecuencia, String calendario) {
 		static Vista de(Suscriptor s) {
-			return new Vista(s.getEmail(), s.getPerfil(), s.getEstado() == Suscriptor.Estado.ACTIVO, s.getFrecuencia().texto());
+			return new Vista(s.getEmail(), s.getPerfil(), s.getEstado() == Suscriptor.Estado.ACTIVO, s.getFrecuencia().texto(),
+					s.getCalendario());
 		}
 	}
 

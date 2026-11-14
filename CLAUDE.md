@@ -17,7 +17,7 @@ Más detalle (arquitectura, privacidad, despliegue) en `README.md`.
 - La pasada diaria: `.github/workflows/avisos.yml` arranca Spring con `--alertas.pasada=true`.
 - `api/src/main/java/es/felixcorcoran/alertas/`: `encaje/`, `suscripciones/` (alta con
   `frecuencia` y `seguidas`, `PUT /api/frecuencia/{token}`), `avisos/` (reparto, cambios de plazo,
-  `Seguimientos`), `guardadas/` (cuenta anónima de guardadas del radar), `correo/`, `convocatorias/`,
+  `Seguimientos`), `guardadas/` (cuenta anónima de guardadas del radar), `calendario/` (`GET /api/calendario/{id}.ics`, id aparte del token), `correo/`, `convocatorias/`,
   `web/` (CORS, límite por IP).
 
 ## Reglas

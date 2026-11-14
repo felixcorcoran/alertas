@@ -10,9 +10,10 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { confirmar as correoConfirmar, yaApuntado } from './correo.mjs';
 import { error as errorPerfil, normalizar } from './perfil.mjs';
+import { calendarioIcs } from './calendario.mjs';
 
 /** Versión del aviso de privacidad que se acepta (Ajustes.PRIVACIDAD en la API Java) */
-export const PRIVACIDAD = '2026-11-13';
+export const PRIVACIDAD = '2026-11-14';
 /** Como mucho, las ayudas guardadas que se siguen de una vez (Seguimientos.MAX_SEGUIDAS) */
 export const MAX_SEGUIDAS = 50;
 /** Guardadas que se cuentan por IP cada 10 minutos (GuardadaController) */
@@ -55,6 +56,7 @@ export const vista = (s) => ({
   },
   confirmado: s.estado === 'ACTIVO',
   frecuencia: (s.frecuencia ?? 'DIARIA').toLowerCase(),
+  calendario: s.calendario ?? null,
 });
 
 /** «diaria» o «semanal» → como en la base de datos; vacía, diaria si se permite (al apuntarse) */
@@ -135,8 +137,24 @@ export async function confirmar(repo, token, ahora = new Date()) {
   return vista(s);
 }
 
+/** Al abrir su panel; la primera vez se crea la dirección de su calendario de plazos (aparte del token) */
 export async function ver(repo, token) {
-  return vista(await porToken(repo, token));
+  const s = await porToken(repo, token);
+  if (!s.calendario) {
+    s.calendario = nuevoToken();
+    await repo.ponerCalendario(s.id, s.calendario);
+  }
+  return vista(s);
+}
+
+/**
+ * El .ics de una dirección de calendario (Calendario.java). Solo da acceso a la
+ * lista de plazos; `convocatorias` son las del radar.
+ */
+export async function calendario(repo, id, leerConvocatorias, ahora = new Date()) {
+  const s = TOKEN.test(id ?? '') ? await repo.porCalendario(id) : null;
+  if (!s) throw new ErrorHttp(404, 'calendario');
+  return calendarioIcs(await leerConvocatorias(), await repo.codigosAvisos(s.id), ahora);
 }
 
 export async function cambiar(repo, token, p) {

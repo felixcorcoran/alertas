@@ -240,4 +240,28 @@ class AvisoServiceTest extends PruebaIntegracion {
 		assertThat(luis.asunto()).isEqualTo("Tu resumen semanal: 6 ayudas nuevas");
 		assertThat(luis.texto()).contains("Publicadas esta semana", "Ayuda 3", "Ayuda 8");
 	}
+
+	@Test
+	void cadaPersonaTieneUnCalendarioDePlazosConSusAyudasYUnaDireccionAparteDeSuToken() throws Exception {
+		String t = apuntadoCon("luis@ejemplo.es", PERFIL, ",\"seguidas\":[\"3\"]");
+		publicar(ayuda("2", "ES61", "2026-12-31", true), ayuda("3", "ES30", "2027-01-15", true), ayuda("4", "ES61", null, true));
+		pasada();
+
+		// La dirección del calendario sale al abrir el panel, y no es el token
+		String json = mvc.perform(get("/api/suscripciones/" + t)).andReturn().getResponse().getContentAsString();
+		String cal = json.replaceAll(".*\"calendario\":\"([A-Za-z0-9_-]{43})\".*", "$1");
+		assertThat(cal).hasSize(43).isNotEqualTo(t);
+		mvc.perform(get("/api/suscripciones/" + t)).andExpect(jsonPath("$.calendario").value(cal));
+
+		String ics = mvc.perform(get("/api/calendario/" + cal + ".ics"))
+				.andExpect(status().isOk())
+				.andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+		// La que se le avisó y la que sigue (aunque sea de otra zona); no la de antes, ni la que no tiene fecha
+		assertThat(ics).startsWith("BEGIN:VCALENDAR").contains("UID:bdns-2@", "UID:bdns-3@", "DTSTART;VALUE=DATE:20261231",
+				"Cierra el plazo: Ayudas para digitalizar el comercio local.", "TRIGGER:-P3D").doesNotContain("bdns-1@", "bdns-4@");
+		assertThat(ics.lines().allMatch(l -> l.getBytes(java.nio.charset.StandardCharsets.UTF_8).length <= 75)).isTrue();
+
+		mvc.perform(get("/api/calendario/" + t + ".ics")).andExpect(status().isNotFound());
+		mvc.perform(get("/api/calendario/" + "a".repeat(43) + ".ics")).andExpect(status().isNotFound());
+	}
 }

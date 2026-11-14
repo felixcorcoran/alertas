@@ -23,6 +23,11 @@ export function repositorio(sql = neon(process.env.DATABASE_URL)) {
           returning id`,
       ).id,
 
+    porCalendario: async (calendario) => uno(await sql`select * from suscriptores where calendario = ${calendario}`),
+    ponerCalendario: (id, calendario) => sql`update suscriptores set calendario = ${calendario} where id = ${id}`,
+    /** Las ayudas de alguien: las avisadas o por avisar y las que sigue */
+    codigosAvisos: async (id) => (await sql`select codigo from avisos where suscriptor_id = ${id}`).map((f) => f.codigo),
+
     cambiarFrecuencia: (id, frecuencia) => sql`update suscriptores set frecuencia = ${frecuencia} where id = ${id}`,
 
     /**

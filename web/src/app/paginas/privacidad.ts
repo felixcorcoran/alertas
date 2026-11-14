@@ -12,7 +12,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
     <article class="texto">
       <p class="eyebrow">Avisos del Radar de subvenciones</p>
       <h1>Política de privacidad</h1>
-      <p class="nota">Última revisión: 13 de noviembre de 2026</p>
+      <p class="nota">Última revisión: 14 de noviembre de 2026</p>
 
       <h2>Quién trata tus datos</h2>
       <p>
@@ -37,6 +37,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
         <li>
           Si al apuntarte lo pides, los códigos de las ayudas que tenías guardadas en el radar, para
           avisarte también si cambia su plazo.
+        </li>
+        <li>
+          Una dirección al azar para tu calendario de plazos, distinta de la de tus enlaces: quien la
+          tenga solo ve las fechas de cierre de tus ayudas, no tu email ni tu negocio.
         </li>
       </ul>
       <p>

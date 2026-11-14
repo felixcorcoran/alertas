@@ -14,6 +14,8 @@ Las ayudas nuevas que encajan con tu negocio, por email. Quien usa el [Radar de 
 4. **Un correo por persona**, como mucho uno al día (o uno a la semana, con todo junto, si eligió el resumen semanal al apuntarse o en «Tu negocio»), con un tope diario para quedarse en el plan gratuito de Resend; lo que no cabe sale al día siguiente.
 5. **Baja con un clic**, desde el pie de cada correo o desde el propio gestor de correo (`List-Unsubscribe`, RFC 8058). La baja borra la dirección y todo lo asociado.
 
+**Calendario de plazos.** En «Tu negocio», cada persona tiene un calendario al que suscribirse (`GET /api/calendario/{id}.ics`) con las fechas de cierre de las ayudas que le enviamos y las que sigue, con aviso tres días antes; se actualiza solo. La dirección es aleatoria y aparte del token (que da acceso a cambiar y darse de baja): los programas de calendario guardan y a veces comparten sus direcciones. Se crea la primera vez que abre su panel (migración V4).
+
 **Qué se guarda en el radar.** Cada vez que alguien guarda una ayuda en el radar se suma uno a su cuenta del día (`POST /api/guardadas`, tabla `guardadas`), sin ningún dato de quién; la pasada diaria escribe en su registro las más guardadas de la semana y borra lo de hace más de medio año.
 
 ## El mismo encaje que la web

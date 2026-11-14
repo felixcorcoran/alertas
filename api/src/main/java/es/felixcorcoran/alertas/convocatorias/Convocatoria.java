@@ -54,7 +54,14 @@ public record Convocatoria(
 			String plazo,
 			String plazoFin,
 			Condiciones condiciones,
-			String dudas) {
+			String dudas,
+			/** Lo que financia, en un titular corto (las leídas antes no lo tienen) */
+			String titular) {
+
+		public Analisis(String categoria, String resumen, String importe, String plazo, String plazoFin, Condiciones condiciones,
+				String dudas) {
+			this(categoria, resumen, importe, plazo, plazoFin, condiciones, dudas, null);
+		}
 
 		public Analisis {
 			condiciones = Objects.requireNonNullElse(condiciones,

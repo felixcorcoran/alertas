@@ -37,6 +37,12 @@ public class Seguimientos {
 				.toList();
 	}
 
+	/** Las ayudas de alguien: las que se le han avisado o va a recibir y las que sigue */
+	@Transactional(readOnly = true)
+	public List<String> codigos(UUID suscriptor) {
+		return avisos.findBySuscriptorId(suscriptor).stream().map(Aviso::getCodigo).toList();
+	}
+
 	@Transactional
 	public void seguir(UUID suscriptor, List<String> codigos, Instant ahora) {
 		for (String codigo : validas(codigos)) {

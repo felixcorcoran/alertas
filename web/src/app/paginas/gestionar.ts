@@ -37,6 +37,20 @@ import { Perfil, respuestas } from '../perfil';
     .frecuencia .nota {
       margin-top: 0.5rem;
     }
+    .calendario {
+      max-width: 30rem;
+      margin: 1.5rem auto 0;
+      text-align: left;
+    }
+    .calendario h2 {
+      margin: 0 0 0.25rem;
+      font-size: 1rem;
+    }
+    .calendario .enlaces {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.25rem;
+    }
   `,
   template: `
     @if (borrada()) {
@@ -78,6 +92,19 @@ import { Perfil, respuestas } from '../perfil';
             </label>
             <p class="nota">También te avisamos si cambia el plazo de una ayuda que te enviamos o que seguías desde el radar.</p>
           </fieldset>
+          @if (calendario(); as cal) {
+            <section class="calendario" aria-labelledby="calendario-titulo">
+              <h2 id="calendario-titulo">Tus plazos en el calendario</h2>
+              <p class="nota">
+                Las ayudas que te enviamos y las que sigues, con su fecha de cierre y un aviso tres días antes. Se
+                actualiza solo.
+              </p>
+              <p class="enlaces">
+                <a [href]="webcal(cal)">Añadir a mi calendario</a>
+                <a [href]="google(cal)" target="_blank" rel="noopener">En Google Calendar ↗</a>
+              </p>
+            </section>
+          }
           @if (mensaje(); as m) {
             <p [class]="m.ok ? 'ok' : 'error'" role="status">{{ m.texto }}</p>
           }
@@ -109,6 +136,10 @@ export class Gestionar implements OnInit {
   protected readonly perfil = signal<Perfil | null>(null);
   protected readonly email = signal('');
   protected readonly frecuencia = signal<Frecuencia>('diaria');
+  protected readonly calendario = signal<string | null>(null);
+  /** webcal:// para Apple y Outlook; Google Calendar, con la misma dirección */
+  protected readonly webcal = (cal: string) => `webcal://${location.host}/api/calendario/${cal}.ics`;
+  protected readonly google = (cal: string) => `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(this.webcal(cal))}`;
   protected readonly cambiando = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly mensaje = signal<{ ok: boolean; texto: string } | null>(null);
@@ -124,6 +155,7 @@ export class Gestionar implements OnInit {
       this.email.set(s.email);
       this.perfil.set(s.perfil);
       this.frecuencia.set(s.frecuencia ?? 'diaria');
+      this.calendario.set(s.calendario ?? null);
     } catch (e) {
       this.error.set(mensajeDeError(e));
     }

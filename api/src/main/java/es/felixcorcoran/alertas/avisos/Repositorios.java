@@ -25,6 +25,8 @@ interface AvisoRepository extends JpaRepository<Aviso, Long> {
 
 	boolean existsBySuscriptorIdAndCodigo(UUID suscriptorId, String codigo);
 
+	List<Aviso> findBySuscriptorId(UUID suscriptorId);
+
 	/** Correos de avisos ya enviados desde una hora (uno por persona y pasada) */
 	@Query("select count(distinct a.suscriptorId) from Aviso a where a.enviado >= :desde")
 	long correosDesde(Instant desde);

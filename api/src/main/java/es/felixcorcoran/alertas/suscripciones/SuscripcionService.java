@@ -103,9 +103,18 @@ public class SuscripcionService {
 		return s;
 	}
 
-	@Transactional(readOnly = true)
+	/** Al abrir su panel; la primera vez se crea la dirección de su calendario de plazos */
+	@Transactional
 	public Suscriptor ver(String token) {
-		return porToken(token);
+		Suscriptor s = porToken(token);
+		if (s.getCalendario() == null) s.setCalendario(token());
+		return s;
+	}
+
+	/** Quien tiene esa dirección de calendario (solo da acceso a la lista de plazos) */
+	@Transactional(readOnly = true)
+	public Optional<Suscriptor> porCalendario(String calendario) {
+		return suscriptores.findByCalendario(calendario);
 	}
 
 	@Transactional

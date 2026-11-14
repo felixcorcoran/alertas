@@ -30,5 +30,5 @@ public record Ajustes(
 		int maxCorreosDia) {
 
 	/** Versión del aviso de privacidad que se acepta al apuntarse */
-	public static final String PRIVACIDAD = "2026-11-13";
+	public static final String PRIVACIDAD = "2026-11-14";
 }

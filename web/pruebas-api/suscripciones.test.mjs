@@ -14,6 +14,7 @@ import {
   MAX_SEGUIDAS,
   apuntar,
   borrar,
+  calendario,
   cambiar,
   cambiarFrecuencia,
   seguidasValidas,
@@ -23,6 +24,7 @@ import {
   ver,
 } from '../api/_lib/suscripciones.mjs';
 
+const TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
 const PERFIL = { provincia: 'ES617', municipio: '', forma: 'autonomo', empleados: 0, antiguedad: '1a3', sector: 'I' };
 const OTRO = { provincia: 'ES300', municipio: '', forma: 'sociedad', empleados: 10, antiguedad: 'mas3', sector: 'G' };
 const INICIO = new Date('2026-10-26T08:30:00Z');
@@ -44,6 +46,9 @@ function repoEnMemoria() {
       filas.push({ id, email, ...perfil, token, estado: 'PENDIENTE', consentimiento, frecuencia, creado: ahora, ultimo_alta: ahora });
       return id;
     },
+    porCalendario: async (cal) => filas.find((s) => s.calendario === cal) ?? null,
+    ponerCalendario: async (id, cal) => (filas.find((s) => s.id === id).calendario = cal),
+    codigosAvisos: async (id) => avisos.filter((a) => a.id === id).map((a) => a.codigo),
     cambiarFrecuencia: async (id, frecuencia) => (filas.find((s) => s.id === id).frecuencia = frecuencia),
     seguir: async (id, codigos) => {
       for (const codigo of codigos)
@@ -239,5 +244,32 @@ describe('guardadas en el radar, como GuardadaController.java', () => {
     expect(await motivo(sumarGuardada(repo, 'no es json', '198.51.100.1', INICIO))).toBe('400 json');
     for (let i = 3; i < MAX_GUARDADAS_POR_IP; i++) await sumarGuardada(repo, '{"codigo":"1"}', '198.51.100.1', INICIO);
     expect(await motivo(sumarGuardada(repo, '{"codigo":"1"}', '198.51.100.1', INICIO))).toBe('429 demasiadas');
+  });
+});
+
+describe('calendario de plazos, como Calendario.java', () => {
+  const ayuda = (codigo, fin, titular) => ({ codigo, titulo: `Ayuda ${codigo}`, fin, ia: titular ? { titular, plazoFin: null } : null });
+
+  it('una dirección aparte del token, que solo da los plazos de sus ayudas abiertas', async () => {
+    await alta('ana@ejemplo.es');
+    const t = tokenDe(buzon[0]);
+    const v = await ver(repo, t);
+    expect(v.calendario).toMatch(TOKEN_RE);
+    expect(v.calendario).not.toBe(t);
+    expect((await ver(repo, t)).calendario).toBe(v.calendario);
+
+    repo.avisos.push({ id: repo.filas[0].id, codigo: '2' }, { id: repo.filas[0].id, codigo: '3' }, { id: repo.filas[0].id, codigo: '4' });
+    const radar = async () => [ayuda('1', '2026-12-31'), ayuda('2', '2026-12-31', 'Bonos para el comercio, de Cabra; 2026'), ayuda('3', '2026-10-01'), ayuda('4', null)];
+    const ics = await calendario(repo, v.calendario, radar, INICIO);
+    expect(ics.startsWith('BEGIN:VCALENDAR\r\n')).toBe(true);
+    expect(ics).toContain('UID:bdns-2@');
+    expect(ics).toContain('SUMMARY:Cierra el plazo: Bonos para el comercio\\, de Cabra\; 2026');
+    expect(ics).not.toContain('bdns-1@');
+    expect(ics).not.toContain('bdns-3@');
+    expect(ics).not.toContain('bdns-4@');
+    expect(ics.split('\r\n').every((l) => new TextEncoder().encode(l).length <= 75)).toBe(true);
+
+    expect(await motivo(calendario(repo, t, radar, INICIO))).toBe('404 calendario');
+    expect(await motivo(calendario(repo, 'corto', radar, INICIO))).toBe('404 calendario');
   });
 });

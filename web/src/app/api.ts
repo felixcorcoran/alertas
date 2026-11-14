@@ -12,6 +12,8 @@ export interface Suscripcion {
   perfil: Perfil;
   confirmado: boolean;
   frecuencia: Frecuencia;
+  /** La dirección de su calendario de plazos (aparte del token) */
+  calendario: string | null;
 }
 
 /**
