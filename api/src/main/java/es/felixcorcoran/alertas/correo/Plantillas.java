@@ -107,6 +107,12 @@ public class Plantillas {
 	 * Con frecuencia semanal, es su resumen de la semana.
 	 */
 	public Mensaje avisos(String email, Perfil perfil, String token, List<Ayuda> ayudas, List<Cambio> cambios, boolean semanal) {
+		return avisos(email, perfil, token, ayudas, cambios, List.of(), semanal);
+	}
+
+	/** Con recordatorios: las ya enviadas que encajan y cierran en los próximos días */
+	public Mensaje avisos(String email, Perfil perfil, String token, List<Ayuda> ayudas, List<Cambio> cambios, List<Ayuda> recordatorios,
+			boolean semanal) {
 		String asunto;
 		if (ayudas.isEmpty())
 			asunto = cambios.size() == 1 ? "Ha cambiado el plazo de una ayuda" : "Han cambiado los plazos de " + cambios.size() + " ayudas";
@@ -179,6 +185,25 @@ public class Plantillas {
 						<div style="margin:0 0 12px;padding:14px 18px;border:1px solid #E7E4DE;border-radius:14px;background:#fff">
 						<p style="margin:0 0 6px;font-size:16px;font-weight:600;line-height:1.35"><a href="%s" style="color:#171717;text-decoration:none">%s</a></p>
 						<p style="margin:0;color:#3F3F3F;font-size:14px">%s</p>
+						</div>
+						""".formatted(htmlEscape(ficha), htmlEscape(c.titulo()), htmlEscape(linea)));
+			}
+		}
+		if (!recordatorios.isEmpty()) {
+			texto.append("Cierran en los próximos días (ya te las enviamos y puedes pedirlas):\n\n");
+			html.append("""
+					<p style="margin:28px 0 12px;font-weight:600">Cierran en los próximos días</p>
+					<p style="margin:0 0 16px;color:#6B6B6B">Ya te las enviamos y puedes pedirlas: que no se te pasen.</p>
+					""");
+			for (Ayuda a : recordatorios) {
+				Convocatoria c = a.convocatoria();
+				String ficha = ajustes.radar() + "/ayudas/" + c.codigo();
+				String linea = "Cierra el " + EncajeService.fechaLarga(c.cierre());
+				texto.append("• ").append(c.titulo()).append("\n  ").append(linea).append("\n  ").append(ficha).append("\n\n");
+				html.append("""
+						<div style="margin:0 0 12px;padding:14px 18px;border:1px solid #E7E4DE;border-radius:14px;background:#fff">
+						<p style="margin:0 0 6px;font-size:16px;font-weight:600;line-height:1.35"><a href="%s" style="color:#171717;text-decoration:none">%s</a></p>
+						<p style="margin:0;color:#C2513C;font-size:14px;font-weight:600">%s</p>
 						</div>
 						""".formatted(htmlEscape(ficha), htmlEscape(c.titulo()), htmlEscape(linea)));
 			}

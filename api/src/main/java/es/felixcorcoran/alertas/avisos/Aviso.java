@@ -51,6 +51,10 @@ public class Aviso {
 	@Column(nullable = false)
 	private boolean seguida;
 
+	/** Ya se recordó que cierra en los próximos días */
+	@Column(nullable = false)
+	private boolean recordado;
+
 	protected Aviso() {
 	}
 
@@ -88,6 +92,14 @@ public class Aviso {
 
 	public void setCambio(boolean cambio) {
 		this.cambio = cambio;
+	}
+
+	public boolean isRecordado() {
+		return recordado;
+	}
+
+	public void setRecordado(boolean recordado) {
+		this.recordado = recordado;
 	}
 
 	public boolean isSeguida() {

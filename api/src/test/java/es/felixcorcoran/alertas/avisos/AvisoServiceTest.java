@@ -264,4 +264,29 @@ class AvisoServiceTest extends PruebaIntegracion {
 		mvc.perform(get("/api/calendario/" + t + ".ics")).andExpect(status().isNotFound());
 		mvc.perform(get("/api/calendario/" + "a".repeat(43) + ".ics")).andExpect(status().isNotFound());
 	}
+
+	@Test
+	void unaAyudaYaEnviadaQueCierraEnUnosDiasSeRecuerdaUnaVezSoloSiSaleCorreo() throws Exception {
+		// Se envía el 25 de octubre; cierra el 30
+		publicar(ayuda("2", "ES61", "2026-10-30", true));
+		pasada();
+		buzon.enviados.clear();
+
+		// Al día siguiente no hay nada nuevo: no sale correo solo para recordar
+		reloj.adelantar(Duration.ofDays(1));
+		pasada().andExpect(jsonPath("$.correos").value(0));
+
+		// Sale otra ayuda: en ese correo va el recordatorio
+		reloj.adelantar(Duration.ofDays(1));
+		publicar(ayuda("3", "ES61", "2026-12-31", true));
+		pasada().andExpect(jsonPath("$.correos").value(1));
+		assertThat(ultimo().texto()).contains("Cierran en los próximos días", "Ayuda 2", "Cierra el 30 de octubre de 2026");
+		assertThat(ultimo().html()).contains("que no se te pasen");
+
+		// Y no se repite
+		reloj.adelantar(Duration.ofDays(1));
+		publicar(ayuda("4", "ES61", "2026-12-31", true));
+		pasada();
+		assertThat(ultimo().texto()).contains("Ayuda 4").doesNotContain("Cierran en los próximos días");
+	}
 }

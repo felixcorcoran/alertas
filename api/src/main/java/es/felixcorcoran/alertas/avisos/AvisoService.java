@@ -46,7 +46,8 @@ import es.felixcorcoran.alertas.suscripciones.SuscriptorRepository;
  * 3. Mira el plazo de las ayudas ya enviadas o seguidas desde el radar: si
  *    ha cambiado, queda un cambio por avisar.
  * 4. Envía un correo por persona con sus avisos pendientes y sus cambios de
- *    plazo, hasta el tope diario; lo que no quepa sale al día siguiente. Con
+ *    plazo (y, ya que sale, un recordatorio de las ya enviadas que encajan y
+ *    cierran en los próximos días: sin correos de más), hasta el tope diario; lo que no quepa sale al día siguiente. Con
  *    frecuencia semanal, como mucho uno a la semana, con todo junto.
  */
 @Service
@@ -62,6 +63,8 @@ public class AvisoService {
 	 * retrase un día entero
 	 */
 	static final Duration SEMANA = Duration.ofDays(7).minusHours(12);
+	/** Días antes del cierre en los que se recuerda una ayuda ya enviada */
+	static final int DIAS_RECORDATORIO = 7;
 
 	public record Resumen(long sinConfirmarBorradas, int nuevas, int avisos, int cambiosDePlazo, int correos, int pendientes) {
 	}
@@ -228,11 +231,27 @@ public class AvisoService {
 				if (c != null) cambios.add(new Cambio(c, a.getCierre(), plazo(c)));
 			}
 			boolean semanal = s.getFrecuencia() == Suscriptor.Frecuencia.SEMANAL;
+			// Ya que sale el correo: las ya enviadas que encajan del todo y cierran en los próximos días (una vez cada una)
+			List<Ayuda> recordatorios = new ArrayList<>();
+			if (!ayudas.isEmpty() || !cambios.isEmpty()) {
+				String limite = LocalDate.parse(hoy).plusDays(DIAS_RECORDATORIO).toString();
+				Set<String> enEsteCorreo = new HashSet<>();
+				ayudas.forEach(a -> enEsteCorreo.add(a.convocatoria().codigo()));
+				cambios.forEach(x -> enEsteCorreo.add(x.convocatoria().codigo()));
+				for (Aviso a : avisos.findBySuscriptorIdAndEnviadoIsNotNullAndRecordadoFalse(s.getId())) {
+					Convocatoria c = porCodigo.get(a.getCodigo());
+					if (c == null || c.cierre() == null || enEsteCorreo.contains(c.codigo())) continue;
+					if (c.cierre().compareTo(hoy) < 0 || c.cierre().compareTo(limite) > 0) continue;
+					Encaje e = encajes.encaje(c, s.getPerfil(), hoy);
+					if (e.estado() == Encaje.Estado.si) recordatorios.add(new Ayuda(c, e));
+				}
+				recordatorios.sort(Comparator.comparing((Ayuda a) -> a.convocatoria().cierre()));
+			}
 
 			try {
 				if (!ayudas.isEmpty() || !cambios.isEmpty()) {
 					correo.enviar(plantillas.avisos(s.getEmail(), s.getPerfil(), s.getToken(),
-							ayudas.subList(0, Math.min(ayudas.size(), MAX_AYUDAS_POR_CORREO)), cambios, semanal));
+							ayudas.subList(0, Math.min(ayudas.size(), MAX_AYUDAS_POR_CORREO)), cambios, recordatorios, semanal));
 					enviados++;
 				}
 				tx.executeWithoutResult(estado -> {
@@ -247,6 +266,10 @@ public class AvisoService {
 						if (c != null) a.setCierre(plazo(c));
 						a.setCambio(false);
 					}
+					Set<String> recordadas = new HashSet<>();
+					recordatorios.forEach(r -> recordadas.add(r.convocatoria().codigo()));
+					for (Aviso a : avisos.findBySuscriptorIdAndEnviadoIsNotNullAndRecordadoFalse(s.getId()))
+						if (recordadas.contains(a.getCodigo())) a.setRecordado(true);
 					if (!ayudas.isEmpty() || !cambios.isEmpty())
 						suscriptores.findById(s.getId()).ifPresent(x -> x.setUltimoAviso(ahora));
 				});
