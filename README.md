@@ -62,6 +62,10 @@ datos/             provincias y sectores, compartidos por la API y el panel
 
 Solo se guarda el email, el perfil del negocio (las mismas respuestas que el radar, sin nombre ni empresa), unas fechas y qué ayudas se han enviado. De la IP solo se guarda su huella (SHA-256) diez minutos, para frenar abusos. El enlace de cada persona lleva un token aleatorio de 256 bits, que es la única llave a sus datos, y la respuesta al apuntarse es la misma esté o no la dirección: no sirve para averiguar quién está apuntado. Detalle en [/privacidad](https://alertas.felixcorcoran.es/privacidad).
 
+## Cómo trabajo
+
+El producto, la arquitectura y las decisiones son míos: qué se construye, cómo se reparte entre piezas, qué reglas no se pueden romper (nada inventado, coste cero, privacidad) y cuándo algo está listo. Para implementar uso Claude Code como asistente, y por eso hay commits en los que figura como coautor o como autor. Cada cambio pasa por un pull request que reviso y fusiono yo, y lo validan las pruebas y la CI de cada repositorio antes de llegar a producción.
+
 ## En local
 
 Hace falta JDK 25 y Node 24.

@@ -22,6 +22,7 @@ Más detalle (arquitectura, privacidad, despliegue) en `README.md`.
 
 ## Reglas
 
+- Commits: autor Félix Corcoran (el email de su cuenta de GitHub, `git config user.name/user.email` en el repo); Claude solo como `Co-Authored-By`.
 - **`EncajeService` = traducción frase por frase de `../subvenciones/src/lib/encaje.ts`.**
   `EncajeContratoTest` lo verifica con `api/src/test/resources/encaje/casos.json` (no editar a
   mano; regenerar con `npx tsx herramientas/casos-encaje.mts ../subvenciones`).
